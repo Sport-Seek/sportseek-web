@@ -1,26 +1,116 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-secondary: #22c55e;
+  --color-tertiary: #f97316;
+  --color-ink: #0f172a;
+  --color-muted: #475569;
+  --color-surface: #f8fafc;
+  --color-surface-strong: #ffffff;
+  --color-border: rgba(148, 163, 184, 0.35);
+  --gradient-hero: linear-gradient(135deg, #fdfcfb 0%, #e8f0ff 100%);
+  --gradient-cta: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
+  --gradient-accent: linear-gradient(135deg, #22d3ee 0%, #2563eb 100%);
+  --shadow-soft: 0 30px 70px rgba(15, 23, 42, 0.18);
+  --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.12);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --font-sans: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.bg-hero {
+  background: var(--gradient-hero);
+}
+
+.bg-cta {
+  background: var(--gradient-cta);
+}
+
+.bg-accent {
+  background: var(--gradient-accent);
+}
+
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+.shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-slow {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  animation: fade-up 0.8s ease both;
+}
+
+.reveal-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.reveal-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.reveal-delay-3 {
+  animation-delay: 0.3s;
+}
+
+.float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .float-slow {
+    animation: none;
+  }
 }
