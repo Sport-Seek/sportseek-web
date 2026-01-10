@@ -277,11 +277,127 @@ export default function Home() {
             </section>
           </main>
 
-          <footer className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200/70 pt-6 text-xs text-slate-500">
-            <span>Landing page SportSeek</span>
-            <div className="flex items-center gap-4">
-              <span>Style Mapbox : Streets</span>
-              <span>DA mobile répliquée</span>
+          <footer className="mt-20 border-t border-slate-200/70 pt-10 text-sm text-slate-600">
+            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr_0.8fr_1fr]">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
+                    <Image src="/icon.png" alt="SportSeek logo" width={26} height={26} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.32em] text-[var(--color-primary)]">
+                      SportSeek
+                    </p>
+                  </div>
+                </div>
+                <p className="max-w-xs text-sm text-slate-600">
+                  Référence les équipements sportifs publics en plein air et découvre ton
+                  prochain spot en un clin d'œil.
+                </p>
+                <div className="flex items-center gap-3">
+                  <a
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                    href="https://www.facebook.com"
+                    aria-label="SportSeek sur Facebook"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M13.5 8.75V7.2c0-.78.5-.96.85-.96h2.1V3.1l-2.9-.02c-3.22 0-3.95 2.4-3.95 3.95v1.72H7.5v3.1h2.1V21h3.9v-9.15h2.7l.4-3.1z"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                    href="https://www.linkedin.com"
+                    aria-label="SportSeek sur LinkedIn"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M4.98 3.5c0 1.38-1.12 2.5-2.5 2.5S0 4.88 0 3.5 1.12 1 2.48 1c1.38 0 2.5 1.12 2.5 2.5zM0 8.9h5v14.6H0zM7.9 8.9h4.8v2h.07c.67-1.27 2.3-2.6 4.74-2.6 5.07 0 6 3.34 6 7.68v7.52h-5v-6.67c0-1.59-.03-3.63-2.22-3.63-2.22 0-2.56 1.73-2.56 3.52v6.78h-5z"
+                      />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  Produit
+                </p>
+                <ul className="space-y-2 text-sm text-slate-600">
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#features">
+                      Fonctionnalités
+                    </a>
+                  </li>
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#community">
+                      Communauté
+                    </a>
+                  </li>
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#map">
+                      Carte en direct
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  Ressources
+                </p>
+                <ul className="space-y-2 text-sm text-slate-600">
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#cta">
+                      Télécharger l'app
+                    </a>
+                  </li>
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#cta">
+                      Support
+                    </a>
+                  </li>
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#cta">
+                      Contact
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  Légal
+                </p>
+                <ul className="space-y-2 text-sm text-slate-600">
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#">
+                      Politique de confidentialité
+                    </a>
+                  </li>
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#">
+                      Conditions d'utilisation
+                    </a>
+                  </li>
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#">
+                      Mentions légales
+                    </a>
+                  </li>
+                  <li>
+                    <a className="transition hover:text-slate-900" href="#">
+                      Gestion des cookies
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200/70 pt-6 text-xs text-slate-500">
+              <span>© 2026 SportSeek. Tous droits réservés.</span>
             </div>
           </footer>
         </div>
