@@ -1,5 +1,6 @@
 import Image from "next/image";
 import MapboxMap from "./components/MapboxMap";
+import Navbar from "./components/Navbar";
 
 export default function Home() {
   const mapboxToken = process.env.PUBLIC_TOKEN_MAPBOX;
@@ -10,54 +11,7 @@ export default function Home() {
         <div className="pointer-events-none absolute -left-32 top-[-120px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(34,211,238,0.35)_0%,_transparent_70%)] blur-2xl" />
         <div className="pointer-events-none absolute right-[-120px] top-[120px] h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,_rgba(37,99,235,0.28)_0%,_transparent_70%)] blur-2xl" />
         <div className="mx-auto max-w-6xl px-6 pb-20 pt-8">
-          <header className="relative z-10">
-            <nav className="flex items-center justify-between gap-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
-                  <Image src="/icon.png" alt="SportSeek logo" width={28} height={28} priority />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.32em] text-[var(--color-primary)]">
-                    SportSeek
-                  </p>
-                  <p className="font-display text-lg font-semibold text-slate-900">SportSeek</p>
-                </div>
-              </div>
-              <div className="hidden items-center gap-6 text-sm font-semibold text-slate-600 md:flex">
-                <a className="transition hover:text-slate-900" href="#map">
-                  Carte
-                </a>
-                <a className="transition hover:text-slate-900" href="#features">
-                  Fonctionnalités
-                </a>
-                <a className="transition hover:text-slate-900" href="#community">
-                  Communauté
-                </a>
-                <a className="transition hover:text-slate-900" href="#cta">
-                  Télécharger
-                </a>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="hidden items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-sm ring-1 ring-slate-200/60 sm:flex">
-                  <Image src="/globe.png" alt="Map" width={18} height={18} />
-                  <Image src="/feed.png" alt="Feed" width={18} height={18} />
-                  <Image src="/social.png" alt="Social" width={18} height={18} />
-                </div>
-                <a
-                  className="hidden rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900 sm:inline-flex"
-                  href="#cta"
-                >
-                  Connexion
-                </a>
-                <a
-                  className="rounded-full bg-cta px-5 py-2 text-sm font-semibold text-white shadow-soft transition hover:translate-y-[-1px]"
-                  href="#cta"
-                >
-                  Démarrer
-                </a>
-              </div>
-            </nav>
-          </header>
+          <Navbar />
 
           <main className="relative z-10">
             <section

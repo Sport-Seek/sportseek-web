@@ -13,8 +13,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "SportSeek | Landing",
-  description: "SportSeek - the live map for outdoor spots and communities.",
+  title: "SportSeek",
+  description:
+    "SportSeek : l'app qui référence les équipements sportifs publics en plein air pour trouver ton prochain spot en un clin d'œil.",
 };
 
 export default function RootLayout({
