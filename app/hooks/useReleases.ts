@@ -7,6 +7,7 @@ import { ApiError } from "@/app/lib/api";
 
 interface UseReleasesResult {
   releases: Release[];
+  total: number;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -14,6 +15,7 @@ interface UseReleasesResult {
 
 export function useReleases(): UseReleasesResult {
   const [releases, setReleases] = useState<Release[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +25,8 @@ export function useReleases(): UseReleasesResult {
 
     try {
       const data = await releasesService.getAll();
-      setReleases(data);
+      setReleases(data.releases);
+      setTotal(data.total);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(`Erreur ${err.status}: ${err.message}`);
@@ -43,6 +46,7 @@ export function useReleases(): UseReleasesResult {
 
   return {
     releases,
+    total,
     loading,
     error,
     refetch: fetchReleases,

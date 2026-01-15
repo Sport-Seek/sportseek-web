@@ -1,25 +1,29 @@
 import { apiClient } from "@/app/lib/api";
-import { Release } from "@/app/types";
+import { Release, ReleasesResponse } from "@/app/types";
 
 export const releasesService = {
   /**
-   * Récupère toutes les releases disponibles
+   * Récupère toutes les releases disponibles avec pagination
    */
-  async getAll(): Promise<Release[]> {
-    return apiClient.get<Release[]>("/releases");
+  async getAll(page = 0, limit = 50): Promise<ReleasesResponse> {
+    return apiClient.get<ReleasesResponse>("/releases", {
+      params: { page, limit },
+    });
   },
 
   /**
-   * Récupère une release spécifique par sa version
+   * Récupère une release spécifique par son ID
    */
-  async getByVersion(version: string): Promise<Release> {
-    return apiClient.get<Release>(`/releases/${encodeURIComponent(version)}`);
+  async getById(id: string): Promise<Release> {
+    return apiClient.get<Release>(`/releases/${encodeURIComponent(id)}`);
   },
 
   /**
-   * Récupère la dernière release stable
+   * Récupère la dernière release pour un environnement donné
    */
-  async getLatest(): Promise<Release> {
-    return apiClient.get<Release>("/releases/latest");
+  async getLatest(env: "production" | "staging" | "development" = "production"): Promise<Release> {
+    return apiClient.get<Release>("/releases/latest", {
+      params: { env },
+    });
   },
 };

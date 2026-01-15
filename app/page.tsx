@@ -8,76 +8,54 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[var(--color-surface)] text-[var(--color-ink)]">
       <div className="relative overflow-hidden">
+        {/* Background blurs */}
         <div className="pointer-events-none absolute -left-32 top-[-120px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(34,211,238,0.35)_0%,_transparent_70%)] blur-2xl" />
         <div className="pointer-events-none absolute right-[-120px] top-[120px] h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,_rgba(37,99,235,0.28)_0%,_transparent_70%)] blur-2xl" />
+
         <div className="mx-auto max-w-6xl px-6 pb-20 pt-8">
           <Navbar />
 
           <main className="relative z-10">
-            <section
-              id="map"
-              className="grid gap-12 pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center"
-            >
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-primary)] shadow-sm ring-1 ring-slate-200/70 reveal">
-                  <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" />
-                  Carte en direct
-                </div>
-                <h1 className="font-display text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl reveal reveal-delay-1">
-                  Trouve ton prochain spot outdoor en temps réel.
+            {/* Hero Section - Carte centrée */}
+            <section id="map" className="pt-12">
+              <div className="mb-8 text-center reveal">
+                <h1 className="font-display text-3xl font-semibold leading-tight text-slate-900 sm:text-4xl">
+                  Trouve ton prochain spot outdoor
                 </h1>
-                <p className="text-base text-[var(--color-muted)] sm:text-lg reveal reveal-delay-2">
-                  Explore la carte, filtre par sport, et partage tes découvertes avec la
-                  communauté.
+                <p className="mx-auto mt-3 max-w-lg text-base text-[var(--color-muted)]">
+                  Explore la carte et découvre les équipements sportifs près de chez toi.
                 </p>
-                <div className="flex flex-wrap items-center gap-3 reveal reveal-delay-3">
-                  <a
-                    className="rounded-full bg-cta px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:translate-y-[-1px]"
-                    href="#cta"
+              </div>
+
+              {/* Barre de recherche */}
+              <div className="mx-auto mb-8 max-w-2xl reveal reveal-delay-1">
+                <div className="flex items-center gap-3 rounded-full border border-slate-200/70 bg-white/80 px-5 py-3 shadow-card backdrop-blur transition focus-within:border-[var(--color-primary)]/50 focus-within:ring-2 focus-within:ring-[var(--color-primary)]/20">
+                  <svg
+                    className="h-5 w-5 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
                   >
-                    Explorer la carte
-                  </a>
-                  <a
-                    className="rounded-full border border-slate-200 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300"
-                    href="#features"
-                  >
-                    Voir comment ça marche
-                  </a>
-                </div>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
-                  <div className="flex -space-x-3">
-                    {[0, 1, 2].map((item) => (
-                      <Image
-                        key={item}
-                        src="/profile-picture-default.png"
-                        alt="Seeker"
-                        width={36}
-                        height={36}
-                        className="h-9 w-9 rounded-full ring-2 ring-white"
-                      />
-                    ))}
-                  </div>
-                  <span>+1,200 seekers actifs en bêta</span>
-                </div>
-                <div className="grid grid-cols-3 gap-4 pt-2">
-                  {[
-                    { value: "2.4k", label: "spots partagés" },
-                    { value: "32", label: "sports suivis" },
-                    { value: "90%", label: "match réussi" },
-                  ].map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm ring-1 ring-slate-200/60"
-                    >
-                      <p className="text-lg font-semibold text-slate-900">{stat.value}</p>
-                      <p className="text-xs text-slate-500">{stat.label}</p>
-                    </div>
-                  ))}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Rechercher un spot, une ville, un sport..."
+                    className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                  />
+                  <button className="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white transition hover:translate-y-[-1px]">
+                    Rechercher
+                  </button>
                 </div>
               </div>
 
-              <div className="relative">
-                <div className="absolute -left-8 -top-8 hidden h-24 w-24 rounded-3xl bg-[rgba(34,197,94,0.12)] blur-xl lg:block float-slow" />
+              {/* Grande carte centrée */}
+              <div className="reveal reveal-delay-2">
                 <div className="rounded-[28px] border border-slate-200/70 bg-white/80 p-4 shadow-card backdrop-blur">
                   <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
                     <span>Carte SportSeek</span>
@@ -87,73 +65,41 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="relative mt-4">
-                    <MapboxMap token={mapboxToken} className="h-[420px] w-full rounded-[24px]" />
-                    <div className="pointer-events-none absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
-                      Spots à proximité
-                    </div>
-                    <div className="pointer-events-none absolute bottom-4 right-4 rounded-2xl bg-white/90 px-4 py-3 text-xs text-slate-600 shadow-sm">
-                      <p className="font-semibold text-slate-900">Skatepark du Prado</p>
-                      <p className="mt-1 text-[11px] text-slate-500">Marseille</p>
-                      <div className="mt-2 flex items-center gap-2 text-[var(--color-primary)]">
-                        <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" />
-                        <span className="text-[11px] font-semibold">Ouvert maintenant</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl bg-[var(--color-surface)] p-3 text-sm text-slate-600">
-                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Hotspots</p>
-                      <p className="mt-1 text-lg font-semibold text-slate-900">92 spots actifs</p>
-                    </div>
-                    <div className="rounded-2xl bg-[var(--color-surface)] p-3 text-sm text-slate-600">
-                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Sports</p>
-                      <p className="mt-1 text-lg font-semibold text-slate-900">12 disciplines</p>
-                    </div>
+                    <MapboxMap token={mapboxToken} className="h-[500px] w-full rounded-[24px]" />
                   </div>
                 </div>
               </div>
             </section>
 
+            {/* Features Section */}
             <section id="features" className="mt-20">
-              <div className="flex flex-wrap items-end justify-between gap-6">
-                <div className="space-y-3">
-                  <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-primary)]">
-                    Pourquoi SportSeek
-                  </p>
-                  <h2 className="font-display text-3xl font-semibold text-slate-900">
-                    Une carte faite pour l'action
-                  </h2>
-                  <p className="max-w-xl text-sm text-[var(--color-muted)] sm:text-base">
-                    Rassemble tes spots préférés, crée des sessions et garde tout le monde
-                    synchronisé sur une seule interface.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200/70">
-                  <span className="h-2 w-2 rounded-full bg-[var(--color-tertiary)]" />
-                  Synchronisé avec l'app
-                </div>
+              <div className="mb-10 text-center">
+                <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-primary)]">
+                  Fonctionnalités
+                </p>
+                <h2 className="mt-3 font-display text-2xl font-semibold text-slate-900 sm:text-3xl">
+                  Une carte faite pour l&apos;action
+                </h2>
               </div>
-              <div className="mt-10 grid gap-6 lg:grid-cols-3">
+
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {[
                   {
                     title: "Carte vivante",
-                    text: "Spots vérifiés, zones d'activité, itinéraires et vues en temps réel.",
+                    text: "Spots vérifiés, zones d'activité et vues en temps réel.",
                     icon: "/globe.png",
-                    chip: "Mise à jour toutes les 10 min",
                     tone: "bg-[rgba(34,211,238,0.18)]",
                   },
                   {
                     title: "Fil intelligent",
-                    text: "Suis les meilleurs spots de ta ville et découvre les nouvelles sessions.",
+                    text: "Suis les meilleurs spots de ta ville et découvre les sessions.",
                     icon: "/feed.png",
-                    chip: "Focus local activé",
                     tone: "bg-[rgba(37,99,235,0.16)]",
                   },
                   {
                     title: "Communauté",
-                    text: "Invite tes amis, partage des conseils, et retrouve ta team plus vite.",
+                    text: "Invite tes amis et retrouve ta team plus vite.",
                     icon: "/social.png",
-                    chip: "Groupes privés",
                     tone: "bg-[rgba(249,115,22,0.16)]",
                   },
                 ].map((feature) => (
@@ -162,7 +108,9 @@ export default function Home() {
                     className="group rounded-[26px] border border-slate-200/70 bg-white/80 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-card"
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${feature.tone}`}>
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-2xl ${feature.tone}`}
+                      >
                         <Image src={feature.icon} alt={feature.title} width={28} height={28} />
                       </div>
                       <h3 className="font-display text-lg font-semibold text-slate-900">
@@ -170,113 +118,13 @@ export default function Home() {
                       </h3>
                     </div>
                     <p className="mt-4 text-sm text-slate-600">{feature.text}</p>
-                    <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-[var(--color-primary)]">
-                      <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" />
-                      {feature.chip}
-                    </div>
                   </div>
                 ))}
-              </div>
-            </section>
-
-            <section id="community" className="mt-20 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="rounded-[30px] bg-hero p-8 shadow-card">
-                <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-primary)]">
-                  Communauté
-                </p>
-                <h2 className="mt-3 font-display text-3xl font-semibold text-slate-900">
-                  Une team qui partage les meilleurs spots.
-                </h2>
-                <p className="mt-4 text-sm text-slate-600 sm:text-base">
-                  Organise des sessions, propose du matériel et rejoins les événements
-                  proposés autour de toi.
-                </p>
-                <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-600">
-                  <div className="flex -space-x-3">
-                    {[0, 1, 2].map((item) => (
-                      <Image
-                        key={item}
-                        src="/profile-picture-default.png"
-                        alt="Seeker"
-                        width={40}
-                        height={40}
-                        className="h-10 w-10 rounded-full ring-2 ring-white"
-                      />
-                    ))}
-                  </div>
-                  <span>Des spots publiés chaque jour</span>
-                </div>
-              </div>
-              <div className="grid gap-6">
-                {[
-                  {
-                    title: "Déclare un spot",
-                    text: "Ajoute un spot en quelques secondes, avec photo et infos utiles.",
-                    icon: "/profile.png",
-                  },
-                  {
-                    title: "Planifie une session",
-                    text: "Invite ta team, gère les horaires, et suis les inscriptions.",
-                    icon: "/social.png",
-                  },
-                  {
-                    title: "Boost tes spots",
-                    text: "Partage tes spots préférés et gagne en visibilité.",
-                    icon: "/feed.png",
-                  },
-                ].map((card) => (
-                  <div
-                    key={card.title}
-                    className="flex items-center gap-4 rounded-[24px] border border-slate-200/70 bg-white/80 p-6 shadow-sm"
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(37,99,235,0.12)]">
-                      <Image src={card.icon} alt={card.title} width={28} height={28} />
-                    </div>
-                    <div>
-                      <p className="font-display text-lg font-semibold text-slate-900">
-                        {card.title}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-600">{card.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section id="cta" className="mt-20">
-              <div className="rounded-[32px] bg-accent p-8 text-white shadow-soft">
-                <div className="flex flex-wrap items-center justify-between gap-6">
-                  <div className="space-y-3">
-                    <p className="text-xs uppercase tracking-[0.3em] text-white/80">
-                      Prêt pour la carte
-                    </p>
-                    <h2 className="font-display text-3xl font-semibold">
-                      Rejoins SportSeek et trouve ta prochaine session.
-                    </h2>
-                    <p className="max-w-xl text-sm text-white/80 sm:text-base">
-                      La landing reprend la DA mobile, la carte Mapbox et les logos de l'app.
-                      Lance la version web pour partager tes spots plus vite.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <a
-                      className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-soft transition hover:translate-y-[-1px]"
-                      href="#map"
-                    >
-                      Ouvrir la carte
-                    </a>
-                    <a
-                      className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-                      href="#features"
-                    >
-                      Voir les fonctionnalités
-                    </a>
-                  </div>
-                </div>
               </div>
             </section>
           </main>
 
+          {/* Footer */}
           <footer className="mt-20 border-t border-slate-200/70 pt-10 text-sm text-slate-600">
             <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr_0.8fr_1fr]">
               <div className="space-y-4">
@@ -292,12 +140,42 @@ export default function Home() {
                 </div>
                 <p className="max-w-xs text-sm text-slate-600">
                   Référence les équipements sportifs publics en plein air et découvre ton
-                  prochain spot en un clin d'œil.
+                  prochain spot en un clin d&apos;œil.
                 </p>
                 <div className="flex items-center gap-3">
                   <a
                     className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
-                    href="https://www.facebook.com"
+                    href="https://www.instagram.com/sportseek"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="SportSeek sur Instagram"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                    href="https://www.tiktok.com/@sportseek"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="SportSeek sur TikTok"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                    href="https://www.facebook.com/sportseek"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     aria-label="SportSeek sur Facebook"
                   >
                     <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -309,7 +187,9 @@ export default function Home() {
                   </a>
                   <a
                     className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
-                    href="https://www.linkedin.com"
+                    href="https://www.linkedin.com/company/sportseek"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     aria-label="SportSeek sur LinkedIn"
                   >
                     <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -333,11 +213,6 @@ export default function Home() {
                     </a>
                   </li>
                   <li>
-                    <a className="transition hover:text-slate-900" href="#community">
-                      Communauté
-                    </a>
-                  </li>
-                  <li>
                     <a className="transition hover:text-slate-900" href="#map">
                       Carte en direct
                     </a>
@@ -351,17 +226,12 @@ export default function Home() {
                 </p>
                 <ul className="space-y-2 text-sm text-slate-600">
                   <li>
-                    <a className="transition hover:text-slate-900" href="#cta">
-                      Télécharger l'app
+                    <a className="transition hover:text-slate-900" href="/download">
+                      Télécharger l&apos;app
                     </a>
                   </li>
                   <li>
-                    <a className="transition hover:text-slate-900" href="#cta">
-                      Support
-                    </a>
-                  </li>
-                  <li>
-                    <a className="transition hover:text-slate-900" href="#cta">
+                    <a className="transition hover:text-slate-900" href="mailto:contact@sportseek.fr">
                       Contact
                     </a>
                   </li>
@@ -380,17 +250,12 @@ export default function Home() {
                   </li>
                   <li>
                     <a className="transition hover:text-slate-900" href="#">
-                      Conditions d'utilisation
+                      Conditions d&apos;utilisation
                     </a>
                   </li>
                   <li>
                     <a className="transition hover:text-slate-900" href="#">
                       Mentions légales
-                    </a>
-                  </li>
-                  <li>
-                    <a className="transition hover:text-slate-900" href="#">
-                      Gestion des cookies
                     </a>
                   </li>
                 </ul>
@@ -405,3 +270,4 @@ export default function Home() {
     </div>
   );
 }
+
