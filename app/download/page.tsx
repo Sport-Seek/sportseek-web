@@ -82,33 +82,71 @@ export default function DownloadPage() {
                 </div>
               )}
 
-              {error && (
-                <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-                  <p className="text-red-600">{error}</p>
-                  <button
-                    onClick={() => refetch()}
-                    className="mt-4 rounded-full bg-red-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
-                  >
-                    Réessayer
-                  </button>
-                </div>
-              )}
-
-              {!loading && !error && releases.length === 0 && (
-                <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-12 text-center shadow-card">
-                  <p className="text-[var(--color-muted)]">Aucune release disponible pour le moment.</p>
+              {!loading && (error || releases.length === 0) && (
+                <div className="reveal rounded-2xl border border-slate-200/70 bg-white/80 p-12 text-center shadow-card backdrop-blur">
+                  <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-cyan-50 to-blue-100 ring-1 ring-slate-200/60">
+                    <svg
+                      className="h-10 w-10 text-[var(--color-primary)]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="font-display text-xl font-semibold text-slate-900">
+                    Bientôt disponible
+                  </h3>
+                  <p className="mx-auto mt-3 max-w-sm text-sm text-[var(--color-muted)]">
+                    L&apos;application SportSeek est en cours de développement. Reste connecté pour être parmi les premiers à la télécharger !
+                  </p>
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                    <a
+                      href="https://instagram.com/sportseek"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                    >
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                      </svg>
+                      Suivre sur Instagram
+                    </a>
+                    <a
+                      href="/"
+                      className="inline-flex items-center gap-2 rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:translate-y-[-1px]"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Découvrir le projet
+                    </a>
+                  </div>
+                  <div className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-secondary)] opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-secondary)]"></span>
+                    </span>
+                    En cours de développement
+                  </div>
                 </div>
               )}
 
               {!loading &&
                 !error &&
+                releases.length > 0 &&
                 releases.map((release, index) => {
-                  const badge = getBadge(release.version);
+                  const badge = getBadge(release.versionName);
                   const isLatest = index === 0;
 
                   return (
                     <div
-                      key={release.version}
+                      key={release.id}
                       className={`reveal rounded-2xl border bg-white/80 p-6 shadow-card backdrop-blur transition hover:shadow-soft ${
                         isLatest ? "border-[var(--color-primary)]/30 ring-2 ring-[var(--color-primary)]/10" : "border-slate-200/70"
                       }`}
@@ -117,8 +155,9 @@ export default function DownloadPage() {
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex flex-wrap items-center gap-3">
                           <h2 className="font-display text-xl font-semibold text-slate-900">
-                            {release.version}
+                            {release.versionName}
                           </h2>
+                          <span className="text-xs text-slate-400">({release.versionCode})</span>
                           {badge && (
                             <span
                               className={`rounded-full ${badge.color} px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white`}
@@ -133,17 +172,17 @@ export default function DownloadPage() {
                           )}
                         </div>
                         <div className="flex items-center gap-4">
-                          {release.size && (
-                            <span className="text-sm text-[var(--color-muted)]">{release.size}</span>
-                          )}
+                          <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                            {release.environment}
+                          </span>
                           <span className="text-sm text-[var(--color-muted)]">
-                            {formatDate(release.date)}
+                            {formatDate(release.createdAt)}
                           </span>
                         </div>
                       </div>
 
-                      {release.changelog && (
-                        <p className="mt-3 text-sm text-[var(--color-muted)]">{release.changelog}</p>
+                      {release.releaseNotes && (
+                        <p className="mt-3 text-sm text-[var(--color-muted)]">{release.releaseNotes}</p>
                       )}
 
                       <div className="mt-4 flex flex-wrap gap-3">
