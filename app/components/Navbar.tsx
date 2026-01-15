@@ -7,7 +7,7 @@ const navItems = [
   { label: "Carte", href: "#map" },
   { label: "Fonctionnalités", href: "#features" },
   { label: "Communauté", href: "#community" },
-  { label: "Télécharger", href: "#cta" },
+  { label: "Télécharger", href: "/download" },
 ];
 
 export default function Navbar() {
