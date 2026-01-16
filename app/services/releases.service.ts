@@ -19,11 +19,9 @@ export const releasesService = {
   },
 
   /**
-   * Récupère la dernière release pour un environnement donné
+   * Récupère la dernière release disponible
    */
-  async getLatest(env: "production" | "staging" | "development" = "production"): Promise<Release> {
-    return apiClient.get<Release>("/releases/latest", {
-      params: { env },
-    });
+  async getLatest(): Promise<Release> {
+    return apiClient.get<Release>("/releases/latest");
   },
 };
