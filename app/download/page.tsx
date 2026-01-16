@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useReleases } from "@/app/hooks";
-import { getReleaseType, ReleaseType } from "@/app/types";
+import { getReleaseType, Release, ReleaseType } from "@/app/types";
 
 const BADGE_CONFIG: Record<ReleaseType, { label: string; color: string } | null> = {
   alpha: { label: "Alpha", color: "bg-amber-500" },
@@ -16,6 +17,19 @@ function getBadge(version: string) {
   return BADGE_CONFIG[type];
 }
 
+function getEnvironmentLabel(environment: Release["environment"]): string {
+  switch (environment) {
+    case "development":
+      return "Développement";
+    case "staging":
+      return "Pré-production";
+    case "production":
+      return "Production";
+    default:
+      return environment;
+  }
+}
+
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return date.toLocaleDateString("fr-FR", {
@@ -26,7 +40,49 @@ function formatDate(dateString: string): string {
 }
 
 export default function DownloadPage() {
-  const { releases, loading, error, refetch } = useReleases();
+  const { releases, loading, error } = useReleases();
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadingReleaseId, setDownloadingReleaseId] = useState<string | null>(null);
+  const isLocalEnv = (process.env.NEXT_PUBLIC_ENV ?? "LOCAL").toUpperCase() === "LOCAL";
+
+  const handleDownload = async (release: Release) => {
+    if (release.mock && isLocalEnv) {
+      setDownloadError("Le téléchargement n'est pas disponible dans l'environnement local.");
+      return;
+    }
+
+    if (!release.apkUrl) {
+      setDownloadError("Le lien de téléchargement ne peut pas être trouvé pour cette version.");
+      return;
+    }
+
+    setDownloadingReleaseId(release.id);
+    setDownloadError(null);
+
+    try {
+      const response = await fetch(release.apkUrl, { method: "HEAD" });
+      if (!response.ok) {
+        throw new Error("Le fichier demandé est indisponible pour l'instant.");
+      }
+
+      const anchor = document.createElement("a");
+      anchor.href = release.apkUrl;
+      anchor.target = "_blank";
+      anchor.rel = "noreferrer";
+      anchor.setAttribute("download", "");
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Une erreur est survenue pendant le téléchargement.";
+      setDownloadError(message);
+    } finally {
+      setDownloadingReleaseId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)] text-[var(--color-ink)]">
@@ -69,8 +125,8 @@ export default function DownloadPage() {
                 Télécharge SportSeek
               </h1>
               <p className="mx-auto max-w-xl text-base text-[var(--color-muted)] sm:text-lg">
-                Retrouve toutes les versions de l&apos;application SportSeek. Télécharge la dernière
-                version pour profiter des nouveautés.
+                Retrouve la dernière version de l&apos;application SportSeek. Télécharge-la pour profiter
+                des nouveautés.
               </p>
             </div>
 
@@ -117,7 +173,7 @@ export default function DownloadPage() {
                       </svg>
                       Suivre sur Instagram
                     </a>
-                    <a
+                    <Link
                       href="/"
                       className="inline-flex items-center gap-2 rounded-full bg-cta px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:translate-y-[-1px]"
                     >
@@ -125,7 +181,7 @@ export default function DownloadPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                       </svg>
                       Découvrir le projet
-                    </a>
+                    </Link>
                   </div>
                   <div className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400">
                     <span className="relative flex h-2 w-2">
@@ -143,6 +199,7 @@ export default function DownloadPage() {
                 releases.map((release, index) => {
                   const badge = getBadge(release.versionName);
                   const isLatest = index === 0;
+                  const isDownloading = downloadingReleaseId === release.id;
 
                   return (
                     <div
@@ -157,7 +214,6 @@ export default function DownloadPage() {
                           <h2 className="font-display text-xl font-semibold text-slate-900">
                             {release.versionName}
                           </h2>
-                          <span className="text-xs text-slate-400">({release.versionCode})</span>
                           {badge && (
                             <span
                               className={`rounded-full ${badge.color} px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white`}
@@ -173,7 +229,7 @@ export default function DownloadPage() {
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
-                            {release.environment}
+                            {getEnvironmentLabel(release.environment)}
                           </span>
                           <span className="text-sm text-[var(--color-muted)]">
                             {formatDate(release.createdAt)}
@@ -186,25 +242,38 @@ export default function DownloadPage() {
                       )}
 
                       <div className="mt-4 flex flex-wrap gap-3">
-                        <a
-                          href={release.downloadUrl}
-                          className="inline-flex items-center gap-2 rounded-full bg-cta px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:translate-y-[-1px]"
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(release)}
+                          disabled={isDownloading}
+                          className={`inline-flex items-center gap-2 rounded-full bg-cta px-6 py-3 text-sm font-semibold text-white shadow-soft transition ${
+                            isDownloading ? "cursor-wait opacity-80" : "hover:translate-y-[-1px]"
+                          }`}
                         >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                            />
-                          </svg>
-                          Télécharger
-                        </a>
+                          {isDownloading ? (
+                            <>
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                              Préparation…
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                />
+                              </svg>
+                              Télécharger
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   );
@@ -218,7 +287,7 @@ export default function DownloadPage() {
               </h3>
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
                 <div className="flex items-start gap-3">
-                  <span className="mt-1 h-3 w-3 rounded-full bg-[var(--color-secondary)]" />
+                  <span className="mt-1 h-3 w-3 flex-shrink-0 rounded-full bg-[var(--color-secondary)]" />
                   <div>
                     <p className="font-semibold text-slate-900">Stable</p>
                     <p className="text-sm text-[var(--color-muted)]">
@@ -227,7 +296,7 @@ export default function DownloadPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="mt-1 h-3 w-3 rounded-full bg-[var(--color-primary)]" />
+                  <span className="mt-1 h-3 w-3 flex-shrink-0 rounded-full bg-[var(--color-primary)]" />
                   <div>
                     <p className="font-semibold text-slate-900">Beta</p>
                     <p className="text-sm text-[var(--color-muted)]">
@@ -236,7 +305,7 @@ export default function DownloadPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="mt-1 h-3 w-3 rounded-full bg-amber-500" />
+                  <span className="mt-1 h-3 w-3 flex-shrink-0 rounded-full bg-amber-500" />
                   <div>
                     <p className="font-semibold text-slate-900">Alpha</p>
                     <p className="text-sm text-[var(--color-muted)]">
@@ -247,6 +316,31 @@ export default function DownloadPage() {
               </div>
             </div>
           </main>
+          {downloadError && (
+            <div className="fixed inset-0 z-30 flex items-center justify-center px-4">
+              <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" />
+              <div className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-card">
+                <h3 className="font-display text-lg font-semibold text-slate-900">
+                  Téléchargement interrompu
+                </h3>
+                <p className="mt-3 text-sm text-[var(--color-muted)] leading-relaxed">
+                  {downloadError}
+                </p>
+                <p className="mt-2 text-xs text-slate-400">
+                  Réessaye en cliquant sur Télécharger. Si le problème persiste, contacte-nous.
+                </p>
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setDownloadError(null)}
+                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-300"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

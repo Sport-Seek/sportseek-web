@@ -4,8 +4,10 @@ export interface Release {
   versionCode: number;
   environment: "production" | "staging" | "development";
   releaseNotes?: string;
+  apkUrl: string;
   downloadUrl: string;
   createdAt: string;
+  mock?: boolean;
 }
 
 export interface ReleasesResponse {
