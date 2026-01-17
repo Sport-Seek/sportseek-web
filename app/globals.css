@@ -108,9 +108,25 @@ html {
   animation: float-slow 7s ease-in-out infinite;
 }
 
+.auth-swap {
+  animation: auth-swap-in 0.5s ease both;
+}
+
+@keyframes auth-swap-in {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .float-slow {
+  .float-slow,
+  .auth-swap {
     animation: none;
   }
 }
