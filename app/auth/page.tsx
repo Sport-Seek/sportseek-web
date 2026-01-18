@@ -3,6 +3,7 @@
 import { useAuth } from "@/app/contexts/AuthContext";
 import { ApiError } from "@/app/lib/api";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -30,7 +31,8 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 export default function AuthPage() {
   const [view, setView] = useState<ViewMode>("login");
   const isLogin = view === "login";
-  const { login, register, loading: authLoading } = useAuth();
+  const { login, register, loading: authLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -69,6 +71,12 @@ export default function AuthPage() {
     setLoginValidation(false);
     setRegisterValidation(false);
   }, [view]);
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace("/profile");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -146,6 +154,18 @@ export default function AuthPage() {
 
   const isLoginBusy = loginSubmitting || authLoading;
   const isRegisterBusy = registerSubmitting || authLoading;
+
+  if (!authLoading && isAuthenticated) {
+    return (
+      <div className="mx-auto max-w-4xl px-6 pb-20 pt-16">
+        <div className="rounded-[24px] border border-slate-200/70 bg-white/85 p-8 shadow-card">
+          <p className="text-sm font-semibold text-slate-600">
+            Redirection vers ton profil...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
