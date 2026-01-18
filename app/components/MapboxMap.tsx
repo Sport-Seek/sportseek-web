@@ -64,6 +64,12 @@ const formatBoolean = (value?: boolean) => {
   return "Non renseigne";
 };
 
+const formatAvailability = (value?: boolean) => {
+  if (value === true) return "Disponible";
+  if (value === false) return "Indisponible";
+  return "Non renseigne";
+};
+
 const getEquipmentCount = (spot: Spot) => {
   if (spot.equipments?.length) {
     return spot.equipments.length;
@@ -304,6 +310,63 @@ export default function MapboxMap({
     typeof selectedSpot.location.longitude === "number"
       ? `${selectedSpot.location.latitude.toFixed(4)}, ${selectedSpot.location.longitude.toFixed(4)}`
       : null;
+
+  const { equipmentNames, propertyMeta } = useMemo(() => {
+    const equipmentNamesMap: Record<string, string> = {};
+    const propertyMetaMap: Record<
+      string,
+      { label: string; key: string; type: string; values: { id: string; value: string }[] }
+    > = {};
+
+    if (selectedSport?.equipments?.length) {
+      selectedSport.equipments.forEach((equipment) => {
+        equipmentNamesMap[equipment.id] = equipment.name;
+        (equipment.properties ?? []).forEach((property) => {
+          propertyMetaMap[property.id] = {
+            label: property.label,
+            key: property.key,
+            type: property.type,
+            values: property.values ?? [],
+          };
+        });
+      });
+    }
+
+    return { equipmentNames: equipmentNamesMap, propertyMeta: propertyMetaMap };
+  }, [selectedSport]);
+
+  const resolvePropertyLabel = useCallback(
+    (prop: { propertyId?: string; propertyKey?: string }) => {
+      const lookupId = prop.propertyId || prop.propertyKey || "";
+      const meta = propertyMeta[lookupId];
+      return meta?.label || prop.propertyKey || prop.propertyId || "Propriete";
+    },
+    [propertyMeta],
+  );
+
+  const resolvePropertyValue = useCallback(
+    (prop: { propertyId?: string; propertyKey?: string; propertyValue?: string }) => {
+      const raw = prop.propertyValue ?? "";
+      if (!raw) return "-";
+      const lookupId = prop.propertyId || prop.propertyKey || "";
+      const meta = propertyMeta[lookupId];
+      if (meta?.type === "boolean") {
+        const lower = raw.toLowerCase();
+        if (lower === "true") return "Oui";
+        if (lower === "false") return "Non";
+      }
+      if (meta?.values?.length) {
+        const match = meta.values.find(
+          (value) =>
+            value.id.toLowerCase() === raw.toLowerCase() ||
+            value.value.toLowerCase() === raw.toLowerCase(),
+        );
+        if (match) return match.value;
+      }
+      return raw;
+    },
+    [propertyMeta],
+  );
 
   const handlePhotoScroll = useCallback(() => {
     if (photoRafRef.current !== null) return;
@@ -579,9 +642,40 @@ export default function MapboxMap({
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                     <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Ambiance</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-700">
-                      Lumiere: {formatBoolean(selectedSpot.haveLighting)} / Eau: {formatBoolean(selectedSpot.haveWaterCooler)}
-                    </p>
+                    <div className="mt-3 grid gap-2">
+                      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                            <path
+                              fill="currentColor"
+                              d="M9 21h6v-1H9v1zm3-20a7 7 0 00-4 12.74V17a1 1 0 001 1h6a1 1 0 001-1v-3.26A7 7 0 0012 1zm2.5 11.46L14 13v3h-4v-3l-.5-.54A5 5 0 1114.5 12.46z"
+                            />
+                          </svg>
+                        </span>
+                        <div className="text-sm">
+                          <p className="font-semibold text-slate-700">Lumiere</p>
+                          <p className="text-xs text-slate-500">
+                            {formatAvailability(selectedSpot.haveLighting)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                            <path
+                              fill="currentColor"
+                              d="M12 2.5c3.5 4.4 6 7.3 6 11a6 6 0 11-12 0c0-3.7 2.5-6.6 6-11zm0 3.3C9.4 9.1 8 11 8 13.5a4 4 0 108 0c0-2.5-1.4-4.4-4-7.7z"
+                            />
+                          </svg>
+                        </span>
+                        <div className="text-sm">
+                          <p className="font-semibold text-slate-700">Eau</p>
+                          <p className="text-xs text-slate-500">
+                            {formatAvailability(selectedSpot.haveWaterCooler)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -595,17 +689,17 @@ export default function MapboxMap({
                           className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
                         >
                           <p className="text-sm font-semibold text-slate-800">
-                            Equipement {entry.equipmentId}
+                            {equipmentNames[entry.equipmentId] || "Equipement"}
                           </p>
                           {entry.properties?.length ? (
                             <div className="mt-3 space-y-2 text-sm">
                               {entry.properties.map((prop, idx) => (
                                 <div key={`${entry.equipmentId}-${idx}`} className="flex justify-between gap-3">
                                   <span className="text-slate-500">
-                                    {prop.propertyKey || prop.propertyId || "Propriete"}
+                                    {resolvePropertyLabel(prop)}
                                   </span>
                                   <span className="font-semibold text-slate-700">
-                                    {prop.propertyValue || "-"}
+                                    {resolvePropertyValue(prop)}
                                   </span>
                                 </div>
                               ))}
