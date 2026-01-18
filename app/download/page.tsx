@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { useReleases } from "@/app/hooks";
 import { getReleaseType, Release, ReleaseType } from "@/app/types";
@@ -10,6 +11,74 @@ const BADGE_CONFIG: Record<ReleaseType, { label: string; color: string } | null>
   beta: { label: "Beta", color: "bg-[var(--color-primary)]" },
   stable: null,
 };
+
+const SCREENSHOTS = [
+  {
+    src: "/screenshots/Screenshot_20260118_101153_SportSeek.jpg",
+    title: "L'esprit SportSeek",
+    caption: "Une app faite pour bouger, simple et lumineuse.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_101254_SportSeek.jpg",
+    title: "Rejoins la team",
+    caption: "Crée ton compte en un clin d'œil.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_003127_SportSeek.jpg",
+    title: "Connexion express",
+    caption: "Reprends ta session sans friction.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_003117_SportSeek.jpg",
+    title: "La carte s'anime",
+    caption: "Des spots visibles dès l'arrivée.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_101018_SportSeek.jpg",
+    title: "Navigation fluide",
+    caption: "Zoom, boussole, repérage instantané.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_003139_SportSeek.jpg",
+    title: "Filtre finement",
+    caption: "Sports, équipements, ambiance : tout se trie.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_101109_SportSeek.jpg",
+    title: "Le spot en détail",
+    caption: "Infos utiles avant de bouger.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_101540_SportSeek.jpg",
+    title: "Déclare un spot",
+    caption: "Choisis ton sport et lance la création.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_101617_SportSeek.jpg",
+    title: "Détaille l'équipement",
+    caption: "Surface, modules, état : tout est clair.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_101738_SportSeek.jpg",
+    title: "Ajoute le contexte",
+    caption: "Horaires, lumière, eau.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_101803_SportSeek.jpg",
+    title: "Résumé avant validation",
+    caption: "Un dernier check et c'est publié.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_100954_SportSeek.jpg",
+    title: "Ton profil Seeker",
+    caption: "Tes sports, ta bio, ton terrain.",
+  },
+  {
+    src: "/screenshots/Screenshot_20260118_101002_SportSeek.jpg",
+    title: "Social en approche",
+    caption: "Bientôt, partage tes sessions.",
+  },
+];
 
 function getBadge(version: string) {
   const type = getReleaseType(version);
@@ -42,7 +111,54 @@ export default function DownloadPage() {
   const { releases, loading, error } = useReleases();
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloadingReleaseId, setDownloadingReleaseId] = useState<string | null>(null);
+  const [activeScreenshot, setActiveScreenshot] = useState(0);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const scrollRafRef = useRef<number | null>(null);
   const isLocalEnv = (process.env.NEXT_PUBLIC_ENV ?? "LOCAL").toUpperCase() === "LOCAL";
+
+  const scrollToScreenshot = useCallback((index: number) => {
+    const container = carouselRef.current;
+    if (!container) return;
+    const items = container.querySelectorAll<HTMLElement>("[data-shot]");
+    if (!items.length) return;
+    const total = items.length;
+    const nextIndex = ((index % total) + total) % total;
+    const target = items[nextIndex];
+    if (!target) return;
+    container.scrollTo({ left: target.offsetLeft, behavior: "smooth" });
+    setActiveScreenshot(nextIndex);
+  }, []);
+
+  const handleCarouselScroll = useCallback(() => {
+    if (scrollRafRef.current !== null) return;
+    scrollRafRef.current = window.requestAnimationFrame(() => {
+      scrollRafRef.current = null;
+      const container = carouselRef.current;
+      if (!container) return;
+      const items = Array.from(container.querySelectorAll<HTMLElement>("[data-shot]"));
+      if (!items.length) return;
+      const center = container.scrollLeft + container.clientWidth / 2;
+      let closestIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+      items.forEach((item, idx) => {
+        const itemCenter = item.offsetLeft + item.offsetWidth / 2;
+        const distance = Math.abs(itemCenter - center);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = idx;
+        }
+      });
+      setActiveScreenshot(closestIndex);
+    });
+  }, []);
+
+  const handlePrevScreenshot = useCallback(() => {
+    scrollToScreenshot(activeScreenshot - 1);
+  }, [activeScreenshot, scrollToScreenshot]);
+
+  const handleNextScreenshot = useCallback(() => {
+    scrollToScreenshot(activeScreenshot + 1);
+  }, [activeScreenshot, scrollToScreenshot]);
 
   const handleDownload = async (release: Release) => {
     if (release.mock && isLocalEnv) {
@@ -108,6 +224,123 @@ export default function DownloadPage() {
               </p>
             </div>
 
+            {SCREENSHOTS.length ? (
+              <section className="mt-12 reveal reveal-delay-1">
+                <div className="relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/85 p-6 shadow-card backdrop-blur">
+                  <div className="pointer-events-none absolute -left-24 top-[-120px] h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,_rgba(34,197,94,0.18)_0%,_transparent_70%)] blur-2xl" />
+                  <div className="pointer-events-none absolute -right-24 bottom-[-140px] h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,_rgba(37,99,235,0.18)_0%,_transparent_70%)] blur-2xl" />
+                  <div className="relative z-10">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-primary)]">
+                          Aperçu mobile
+                        </p>
+                        <h2 className="mt-2 font-display text-2xl font-semibold text-slate-900 sm:text-3xl">
+                          L&apos;app en images
+                        </h2>
+                        <p className="mt-3 max-w-xl text-sm text-[var(--color-muted)]">
+                          Swipe les écrans pour ressentir le flow SportSeek : carte live,
+                          filtres, et infos spot en un clin d&apos;œil.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handlePrevScreenshot}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                          aria-label="Voir la capture précédente"
+                        >
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                            <path
+                              fill="currentColor"
+                              d="M15.5 5.5a1 1 0 010 1.4L10.4 12l5.1 5.1a1 1 0 01-1.4 1.4l-5.8-5.8a1 1 0 010-1.4l5.8-5.8a1 1 0 011.4 0z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleNextScreenshot}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                          aria-label="Voir la capture suivante"
+                        >
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                            <path
+                              fill="currentColor"
+                              d="M8.5 5.5a1 1 0 011.4 0l5.8 5.8a1 1 0 010 1.4l-5.8 5.8a1 1 0 01-1.4-1.4l5.1-5.1-5.1-5.1a1 1 0 010-1.4z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="relative mt-8">
+                      <div
+                        ref={carouselRef}
+                        onScroll={handleCarouselScroll}
+                        className="carousel-track flex snap-x snap-mandatory gap-6 overflow-x-auto pb-6 pt-2"
+                      >
+                        {SCREENSHOTS.map((shot, index) => {
+                          const isActive = index === activeScreenshot;
+                          return (
+                            <div key={shot.src} data-shot className="snap-center shrink-0">
+                              <div
+                                className={`transition duration-300 ${
+                                  isActive ? "opacity-100" : "opacity-75"
+                                }`}
+                              >
+                                <div className="rounded-[32px] bg-[linear-gradient(145deg,_rgba(37,99,235,0.8),_rgba(34,197,94,0.7),_rgba(15,23,42,0.9))] p-[1px] shadow-card">
+                                  <div className="rounded-[30px] bg-slate-900/95 p-2">
+                                    <div className="relative aspect-[9/19] w-[220px] overflow-hidden rounded-[24px] bg-slate-900 sm:w-[260px]">
+                                      <Image
+                                        src={shot.src}
+                                        alt={`Capture SportSeek: ${shot.title}`}
+                                        fill
+                                        sizes="(min-width: 640px) 260px, 220px"
+                                        className="object-cover"
+                                        priority={index < 2}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-3 space-y-1">
+                                <p className="text-sm font-semibold text-slate-800">
+                                  {shot.title}
+                                </p>
+                                <p className="text-xs text-slate-500">{shot.caption}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white/90 to-transparent" />
+                      <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white/90 to-transparent" />
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        {SCREENSHOTS.map((_, index) => (
+                          <button
+                            key={`dot-${index}`}
+                            type="button"
+                            onClick={() => scrollToScreenshot(index)}
+                            className={`h-2 rounded-full transition ${
+                              index === activeScreenshot
+                                ? "w-8 bg-[var(--color-primary)]"
+                                : "w-2 bg-slate-300"
+                            }`}
+                            aria-label={`Aller à la capture ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs font-semibold text-slate-500">
+                        {activeScreenshot + 1} / {SCREENSHOTS.length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            ) : null}
             {/* Releases List */}
             <div className="mt-12 space-y-4">
               {loading && (
