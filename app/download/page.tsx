@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useReleases } from "@/app/hooks";
 import { getReleaseType, Release, ReleaseType } from "@/app/types";
@@ -92,27 +91,6 @@ export default function DownloadPage() {
         <div className="pointer-events-none absolute right-[-120px] top-[120px] h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,_rgba(37,99,235,0.28)_0%,_transparent_70%)] blur-2xl" />
 
         <div className="mx-auto max-w-4xl px-6 pb-20 pt-8">
-          {/* Header */}
-          <header className="relative z-10">
-            <nav className="flex items-center justify-between gap-6">
-              <Link href="/" className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
-                  <Image src="/icon.png" alt="SportSeek logo" width={28} height={28} priority />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.32em] text-[var(--color-primary)]">
-                    SportSeek
-                  </p>
-                </div>
-              </Link>
-              <Link
-                href="/"
-                className="rounded-full border border-slate-200 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300"
-              >
-                Retour à l&apos;accueil
-              </Link>
-            </nav>
-          </header>
 
           {/* Main Content */}
           <main className="relative z-10 pt-16">
