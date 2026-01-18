@@ -77,7 +77,6 @@ export default function AuthPage() {
       router.replace("/profile");
     }
   }, [authLoading, isAuthenticated, router]);
-
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loginSubmitting || authLoading) {
@@ -166,7 +165,6 @@ export default function AuthPage() {
       </div>
     );
   }
-
   return (
     <div>
       <div className="pointer-events-none absolute -left-32 top-[-120px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(34,211,238,0.35)_0%,_transparent_70%)] blur-2xl" />
