@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
 
@@ -35,7 +36,7 @@ export default function Navbar() {
     <header className="relative z-20">
       <div className="mx-auto max-w-6xl px-6 pt-8">
         <nav className="flex items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
               <Image src="/icon.png" alt="SportSeek logo" width={28} height={28} priority />
             </div>
@@ -44,7 +45,7 @@ export default function Navbar() {
                 SportSeek
               </p>
             </div>
-          </div>
+          </Link>
           <div className="hidden items-center gap-6 text-sm font-semibold text-slate-600 md:flex">
             {navItems.map((item) => (
               <a key={item.href} className="transition hover:text-slate-900" href={item.href}>

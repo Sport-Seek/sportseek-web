@@ -95,6 +95,7 @@ const normalizeEquipments = (spot: Spot) => {
   return Object.entries(spot.equipmentProperties).map(([equipmentId, props]) => ({
     equipmentId,
     properties: Object.entries(props ?? {}).map(([propertyKey, value]) => ({
+      propertyId: propertyKey,
       propertyKey,
       propertyValue: String(value ?? ""),
     })),
