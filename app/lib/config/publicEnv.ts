@@ -2,16 +2,6 @@ const LOCAL_API_URL_HINT = "http://127.0.0.1:4000";
 
 type PublicEnv = {
   NEXT_PUBLIC_API_URL?: string;
-  NEXT_PUBLIC_ENV?: string;
-  NODE_ENV?: string;
-};
-
-const normalizeEnvironment = (env: PublicEnv): string => {
-  const explicit = env.NEXT_PUBLIC_ENV?.trim();
-  if (explicit) {
-    return explicit.toUpperCase();
-  }
-  return env.NODE_ENV === "development" ? "LOCAL" : "PRODUCTION";
 };
 
 const normalizeUrl = (value: string): string => {
@@ -30,9 +20,8 @@ const normalizeUrl = (value: string): string => {
   return parsed.toString().replace(/\/$/, "");
 };
 
-export const resolvePublicApiBaseUrl = (env: PublicEnv = process.env): string => {
-  const configured = env.NEXT_PUBLIC_API_URL?.trim();
-  normalizeEnvironment(env);
+export const resolvePublicApiBaseUrl = (env: PublicEnv = process.env as PublicEnv): string => {
+  const configured = (env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_URL)?.trim();
 
   if (!configured) {
     throw new Error(
