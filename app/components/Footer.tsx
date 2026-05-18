@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -86,14 +87,14 @@ export default function Footer() {
             </p>
             <ul className="space-y-2 text-sm text-slate-600">
               <li>
-                <a className="transition hover:text-slate-900" href="/#features">
+                <Link className="transition hover:text-slate-900" href="/#features">
                   Fonctionnalités
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="transition hover:text-slate-900" href="/#map">
+                <Link className="transition hover:text-slate-900" href="/#map">
                   Carte en direct
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -104,9 +105,9 @@ export default function Footer() {
             </p>
             <ul className="space-y-2 text-sm text-slate-600">
               <li>
-                <a className="transition hover:text-slate-900" href="/download">
+                <Link className="transition hover:text-slate-900" href="/download">
                   Télécharger l&apos;app
-                </a>
+                </Link>
               </li>
               <li>
                 <a className="transition hover:text-slate-900" href="mailto:contact@sportseek.fr">

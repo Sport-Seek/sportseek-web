@@ -378,7 +378,7 @@ export default function AuthPage() {
                     </label>
                     <label className="block">
                       <span className="text-sm font-semibold text-slate-800">
-                        Nom d'utilisateur
+                        Nom d&apos;utilisateur
                       </span>
                       <input
                         type="text"
@@ -513,7 +513,7 @@ export default function AuthPage() {
                       </div>
                       {showRegisterConfirmError ? (
                         <p className="mt-2 text-xs font-semibold text-rose-600">
-                          Répète le mot de passe à l'identique.
+                          Répète le mot de passe à l&apos;identique.
                         </p>
                       ) : null}
                     </label>

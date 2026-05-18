@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.sportseek.fr";
+import { getPublicApiBaseUrl } from "@/app/lib/config/publicEnv";
 
 export class ApiError extends Error {
   constructor(
@@ -35,7 +35,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 function buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(endpoint, API_BASE_URL);
+  const url = new URL(endpoint, getPublicApiBaseUrl());
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
