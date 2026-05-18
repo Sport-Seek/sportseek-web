@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Providers from "./providers";
 
 const manrope = Manrope({
   variable: "--font-body",
@@ -32,7 +35,13 @@ export default function RootLayout({
         />
       </head>
       <body className={`${manrope.variable} ${spaceGrotesk.variable} antialiased`}>
-        {children}
+        <Providers>
+          <div className="relative flex min-h-screen flex-col overflow-hidden bg-[var(--color-surface)] text-[var(--color-ink)]">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );
