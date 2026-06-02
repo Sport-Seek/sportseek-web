@@ -1,7 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Footer() {
+  const router = useRouter();
+
   return (
     <footer className="mt-20 border-t border-slate-200/70">
       <div className="mx-auto max-w-6xl px-6 pb-12 pt-10 text-sm text-slate-600">
@@ -18,8 +23,8 @@ export default function Footer() {
               </div>
             </div>
             <p className="max-w-xs text-sm text-slate-600">
-              Référence les équipements sportifs publics en plein air et découvre ton
-              prochain spot en un clin d&apos;œil.
+              La carte collaborative des équipements sportifs publics en France pour
+              trouver, vérifier et améliorer les spots autour de soi.
             </p>
             <div className="flex items-center gap-3">
               <a
@@ -110,6 +115,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link className="transition hover:text-slate-900" href="/collectivites">
+                  Collectivités
+                </Link>
+              </li>
+              <li>
                 <a className="transition hover:text-slate-900" href="mailto:contact@sportseek.fr">
                   Contact
                 </a>
@@ -123,19 +133,31 @@ export default function Footer() {
             </p>
             <ul className="space-y-2 text-sm text-slate-600">
               <li>
-                <a className="transition hover:text-slate-900" href="#">
-                  Politique de confidentialité
-                </a>
-              </li>
-              <li>
-                <a className="transition hover:text-slate-900" href="#">
-                  Conditions d&apos;utilisation
-                </a>
-              </li>
-              <li>
-                <a className="transition hover:text-slate-900" href="#">
+                <button
+                  type="button"
+                  className="transition hover:text-slate-900"
+                  onClick={() => router.push("/mentions-legales")}
+                >
                   Mentions légales
-                </a>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="transition hover:text-slate-900"
+                  onClick={() => router.push("/conditions-utilisation")}
+                >
+                  Conditions d&apos;utilisation
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="transition hover:text-slate-900"
+                  onClick={() => router.push("/politique-confidentialite")}
+                >
+                  Politique de confidentialité
+                </button>
               </li>
             </ul>
           </div>

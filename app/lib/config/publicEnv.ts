@@ -20,8 +20,8 @@ const normalizeUrl = (value: string): string => {
   return parsed.toString().replace(/\/$/, "");
 };
 
-export const resolvePublicApiBaseUrl = (env: PublicEnv = process.env as PublicEnv): string => {
-  const configured = (env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_URL)?.trim();
+export const resolvePublicApiBaseUrl = (env?: PublicEnv): string => {
+  const configured = (env?.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_URL)?.trim();
 
   if (!configured) {
     throw new Error(

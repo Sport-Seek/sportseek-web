@@ -26,6 +26,7 @@ export type SpotPhoto = {
 export type Spot = {
   id: string;
   sportId: string;
+  name?: string | null;
   sportName?: string;
   statusId?: string;
   location: SpotLocation | null;
