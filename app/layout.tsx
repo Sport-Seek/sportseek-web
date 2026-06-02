@@ -18,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "SportSeek",
   description:
-    "SportSeek : l'app qui référence les équipements sportifs publics en plein air pour trouver ton prochain spot en un clin d'œil.",
+    "SportSeek : la carte collaborative des équipements sportifs publics en France pour trouver, vérifier et améliorer les spots autour de soi.",
 };
 
 export default function RootLayout({

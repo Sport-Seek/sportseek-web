@@ -4,7 +4,13 @@ import Script from "next/script";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSports } from "@/app/contexts/SportsContext";
 import { getPublicApiBaseUrl } from "@/app/lib/config/publicEnv";
-import { spotsService } from "@/app/services";
+import {
+  geocodingService,
+  spotsService,
+  GeocodingSearchError,
+} from "@/app/services";
+import type { GeocodingCandidate, GeocodingSearchErrorCode } from "@/app/services/geocoding.service";
+import { MIN_QUERY_LENGTH } from "@/app/services/geocoding.service";
 import type { Spot } from "@/app/types";
 
 const DEFAULT_CENTER: [number, number] = [2.2137, 46.2276];
@@ -12,7 +18,6 @@ const DEFAULT_ZOOM = 5.3;
 const DEFAULT_SPOT_COLOR = "#2563eb";
 const FETCH_SPOTS_DEBOUNCE_MS = 250;
 const SPOTS_CACHE_TTL_MS = 30_000;
-const MAX_CITY_FETCH_SIZE_KM = 18;
 const GLOBAL_INTERMEDIATE_ENTER_ZOOM = 12.9;
 const GLOBAL_INTERMEDIATE_EXIT_ZOOM = 12.6;
 const SPORT_CLUSTER_ENTER_ZOOM = 13.7;
@@ -23,6 +28,15 @@ const CLUSTER_ZOOM_INCREMENT = 2;
 const CLUSTER_ZOOM_CAP = 20;
 const SPORT_CLUSTER_RADIUS_METERS = 350;
 const SPOTS_SOURCE_ID = "spots-source";
+
+/** Messages utilisateur pour chaque code d'erreur du gateway geocoding. */
+const GEOCODING_ERROR_MESSAGES: Record<GeocodingSearchErrorCode, string> = {
+  ADDRESS_QUERY_REQUIRED: "Saisis une ville, un code postal ou une adresse.",
+  ADDRESS_QUERY_HTML_NOT_ALLOWED: "Saisie invalide — les balises HTML ne sont pas autorisées.",
+  ADDRESS_SEARCH_TIMEOUT: "Délai dépassé. Réessaie dans quelques secondes.",
+  ADDRESS_SEARCH_UPSTREAM_UNAVAILABLE: "Service adresse indisponible. Réessaie dans quelques secondes.",
+  ADDRESS_SEARCH_UNKNOWN: "Service adresse indisponible. Réessaie dans quelques secondes.",
+};
 const CLUSTERS_LAYER_ID = "spots-clusters";
 const CLUSTER_COUNT_LAYER_ID = "spots-cluster-count";
 const UNCLUSTERED_LAYER_ID = "spots-unclustered";
@@ -40,6 +54,8 @@ type MapboxMapProps = {
   center?: [number, number];
   zoom?: number;
 };
+type DiscoveryViewMode = "map" | "list";
+type SpotListSort = "city-asc" | "city-desc";
 
 type MapboxBounds = {
   getEast: () => number;
@@ -52,9 +68,6 @@ type ClusterRenderMode = "global" | "globalIntermediate" | "sportCluster" | "mar
 type BoundingBox = { minLon: number; minLat: number; maxLon: number; maxLat: number };
 type SpotsCacheEntry = { spots: Spot[]; cachedAt: number };
 const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection" as const, features: [] as unknown[] };
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max);
 
 const toBboxCacheKey = (bbox: BoundingBox) =>
   [bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat].map((value) => value.toFixed(4)).join("|");
@@ -84,36 +97,14 @@ const areSpotsEquivalent = (left: Spot[], right: Spot[]) => {
   return true;
 };
 
-const getCityScopedBbox = (bounds: MapboxBounds) => {
-  const west = bounds.getWest();
-  const east = bounds.getEast();
-  const south = bounds.getSouth();
-  const north = bounds.getNorth();
+const boundsToBbox = (bounds: MapboxBounds) => ({
+  minLon: bounds.getWest(),
+  minLat: bounds.getSouth(),
+  maxLon: bounds.getEast(),
+  maxLat: bounds.getNorth(),
+});
 
-  const lonSpan = Math.abs(east - west);
-  const latSpan = Math.abs(north - south);
-  const centerLon = (west + east) / 2;
-  const centerLat = (south + north) / 2;
-
-  const kmPerLatDegree = 111.32;
-  const kmPerLonDegree = Math.max(
-    111.32 * Math.cos((centerLat * Math.PI) / 180),
-    0.1,
-  );
-
-  const maxLatSpanDeg = MAX_CITY_FETCH_SIZE_KM / kmPerLatDegree;
-  const maxLonSpanDeg = MAX_CITY_FETCH_SIZE_KM / kmPerLonDegree;
-
-  const cappedLatSpan = Math.min(latSpan, maxLatSpanDeg);
-  const cappedLonSpan = Math.min(lonSpan, maxLonSpanDeg);
-
-  const minLat = clamp(centerLat - cappedLatSpan / 2, -90, 90);
-  const maxLat = clamp(centerLat + cappedLatSpan / 2, -90, 90);
-  const minLon = clamp(centerLon - cappedLonSpan / 2, -180, 180);
-  const maxLon = clamp(centerLon + cappedLonSpan / 2, -180, 180);
-
-  return { minLon, minLat, maxLon, maxLat };
-};
+const formatDistanceKm = (meters: number) => `${(meters / 1000).toFixed(1)} km`;
 
 const distanceMeters = (
   left: { latitude: number; longitude: number },
@@ -352,6 +343,16 @@ export default function MapboxMap({
   const [spots, setSpots] = useState<Spot[]>([]);
   const [spotsLoading, setSpotsLoading] = useState(false);
   const [spotsError, setSpotsError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<DiscoveryViewMode>("map");
+  const [listSort, setListSort] = useState<SpotListSort>("city-asc");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<GeocodingCandidate[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [viewportCenter, setViewportCenter] = useState({
+    latitude: center[1],
+    longitude: center[0],
+  });
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [spotModalOpen, setSpotModalOpen] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -363,6 +364,7 @@ export default function MapboxMap({
   const styleImageMissingBoundRef = useRef(false);
   const styleImageMissingHandlerRef = useRef<((event: unknown) => void) | null>(null);
   const fetchAbortRef = useRef<AbortController | null>(null);
+  const geocodingAbortRef = useRef<AbortController | null>(null);
   const fetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestSpotsRef = useRef<Spot[]>([]);
   const spotsCacheRef = useRef<Map<string, SpotsCacheEntry>>(new Map());
@@ -626,7 +628,7 @@ export default function MapboxMap({
     const bounds = map.getBounds?.();
     if (!bounds) return;
 
-    const bbox = getCityScopedBbox(bounds);
+    const bbox = boundsToBbox(bounds);
     const bboxCacheKey = toBboxCacheKey(bbox);
     const cachedEntry = spotsCacheRef.current.get(bboxCacheKey);
     const now = Date.now();
@@ -712,6 +714,13 @@ export default function MapboxMap({
     };
     const handleMoveEnd = () => {
       syncClusterRenderMode();
+      const bounds = map.getBounds?.();
+      if (bounds) {
+        setViewportCenter({
+          latitude: (bounds.getSouth() + bounds.getNorth()) / 2,
+          longitude: (bounds.getWest() + bounds.getEast()) / 2,
+        });
+      }
       scheduleFetchSpotsInView();
     };
     const handleMapClick = () => {
@@ -721,6 +730,13 @@ export default function MapboxMap({
     const handleLoad = () => {
       setMapLoaded(true);
       syncClusterRenderMode();
+      const bounds = map.getBounds?.();
+      if (bounds) {
+        setViewportCenter({
+          latitude: (bounds.getSouth() + bounds.getNorth()) / 2,
+          longitude: (bounds.getWest() + bounds.getEast()) / 2,
+        });
+      }
       scheduleFetchSpotsInView(0);
     };
 
@@ -1277,6 +1293,132 @@ export default function MapboxMap({
     setActivePhoto(nextIndex);
   }, []);
 
+  const sortedSpots = useMemo(() => {
+    const withDistance = spots.map((spot) => {
+      const latitude = spot.location?.latitude;
+      const longitude = spot.location?.longitude;
+      const distanceFromCenterMeters =
+        typeof latitude === "number" && typeof longitude === "number"
+          ? distanceMeters(
+              { latitude, longitude },
+              { latitude: viewportCenter.latitude, longitude: viewportCenter.longitude },
+            )
+          : Number.POSITIVE_INFINITY;
+      return { spot, distanceFromCenterMeters };
+    });
+    withDistance.sort((left, right) => {
+      const leftLabel = `${left.spot.name ?? ""} ${left.spot.city ?? ""}`.trim().toLowerCase();
+      const rightLabel = `${right.spot.name ?? ""} ${right.spot.city ?? ""}`.trim().toLowerCase();
+      return listSort === "city-desc"
+        ? rightLabel.localeCompare(leftLabel, "fr")
+        : leftLabel.localeCompare(rightLabel, "fr");
+    });
+    return withDistance;
+  }, [listSort, spots, viewportCenter.latitude, viewportCenter.longitude]);
+
+  const handleSelectSpotFromList = useCallback((spot: Spot) => {
+    setSelectedSpot(spot);
+    setSpotModalOpen(false);
+    const map = mapRef.current;
+    if (
+      map &&
+      spot.location &&
+      typeof spot.location.longitude === "number" &&
+      typeof spot.location.latitude === "number"
+    ) {
+      map.easeTo({
+        center: [spot.location.longitude, spot.location.latitude],
+        zoom: Math.max(currentZoomRef.current, MARKERS_ENTER_ZOOM),
+        duration: 600,
+      });
+    }
+  }, []);
+
+  const recenterFromSearchResult = useCallback((candidate: GeocodingCandidate) => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.easeTo({
+      center: [candidate.longitude, candidate.latitude],
+      zoom: 13.5,
+      duration: 700,
+    });
+    setSearchResults([]);
+    setSearchError(null);
+    setSearchQuery(candidate.label);
+  }, []);
+
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+  };
+
+  useEffect(() => {
+    const normalized = searchQuery.trim();
+
+    if (!normalized) {
+      setSearchError(null);
+      setSearchResults([]);
+      return;
+    }
+
+    if (normalized.includes("<") || normalized.includes(">")) {
+      setSearchError("Saisie invalide. Utilise une ville, un code postal ou une adresse.");
+      setSearchResults([]);
+      return;
+    }
+
+    if (normalized.length < MIN_QUERY_LENGTH) {
+      setSearchError(`Saisis au moins ${MIN_QUERY_LENGTH} caractères pour lancer la recherche.`);
+      setSearchResults([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      geocodingAbortRef.current?.abort();
+      const controller = new AbortController();
+      geocodingAbortRef.current = controller;
+
+      setSearchLoading(true);
+      setSearchError(null);
+      try {
+        const results = await geocodingService.search(normalized, {
+          limit: 5,
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted) return;
+        setSearchResults(results);
+        if (!results.length) {
+          setSearchError("Aucun résultat. Essaie une autre ville, un code postal ou une adresse.");
+        }
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        setSearchResults([]);
+        if (error instanceof GeocodingSearchError) {
+          setSearchError(GEOCODING_ERROR_MESSAGES[error.code] ?? GEOCODING_ERROR_MESSAGES.ADDRESS_SEARCH_UNKNOWN);
+        } else {
+          setSearchError(GEOCODING_ERROR_MESSAGES.ADDRESS_SEARCH_UNKNOWN);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setSearchLoading(false);
+        }
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timeoutId);
+      // We don't abort the fetch on unmount of this effect because it might be just
+      // the searchQuery changing, and we DO abort it before making a new fetch.
+      // But we can abort it if the component unmounts.
+    };
+  }, [searchQuery]);
+
+  // Nettoyage au démontage
+  useEffect(() => {
+    return () => {
+      geocodingAbortRef.current?.abort();
+    };
+  }, []);
+
   return (
     <div className={`relative overflow-hidden ${className ?? ""}`}>
       <Script
@@ -1285,28 +1427,183 @@ export default function MapboxMap({
         onLoad={() => setReady(true)}
       />
       <div ref={containerRef} className="h-full w-full" />
-      <div className="pointer-events-none absolute left-4 top-4 flex flex-col gap-2">
-        {spotsLoading ? (
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-primary)]" />
-            Chargement des spots...
-          </span>
-        ) : spotsError ? (
-          <span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm">
-            Spots indisponibles
-          </span>
-        ) : spots.length ? (
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
-            {spots.length} spots visibles
-          </span>
-        ) : null}
+      <div className="absolute inset-x-0 top-4 z-30 pl-4 pr-14 sm:px-4">
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
+
+            {/* Barre de recherche et switch intégrés */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="pointer-events-auto flex w-full items-center gap-2 rounded-full border border-slate-200 bg-white/97 py-2 pl-4 pr-2 shadow-card backdrop-blur"
+            >
+              {/* Icône loupe décorative */}
+              <svg
+                className="h-4 w-4 shrink-0 text-slate-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                type="text"
+                inputMode="search"
+                placeholder="Ville, code postal, adresse…"
+                className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                aria-label="Recherche par ville, code postal ou adresse"
+              />
+
+              {/* Bouton effacer ou état de chargement/erreur */}
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => { setSearchQuery(""); setSearchResults([]); }}
+                  className="shrink-0 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                  aria-label="Effacer la recherche"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              ) : spotsLoading ? (
+                <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-primary)]" />
+                  Chargement…
+                </span>
+              ) : spotsError ? (
+                <span className="shrink-0 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-600">
+                  Indisponible
+                </span>
+              ) : null}
+
+              {/* Ligne verticale de séparation */}
+              <div className="mx-1 h-5 w-px shrink-0 bg-slate-200" />
+
+              {/* Switch vue (bouton unique) */}
+              <button
+                type="button"
+                onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
+                aria-label={viewMode === "map" ? "Passer en mode liste" : "Passer en mode carte"}
+                className="shrink-0 rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+              >
+                {viewMode === "map" ? (
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" />
+                    <path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+                  </svg>
+                )}
+              </button>
+            </form>
+
+          {/* Erreur de recherche */}
+          {searchError ? (
+            <div className="pointer-events-none rounded-xl border border-rose-200 bg-rose-50/95 px-3 py-2 text-xs font-semibold text-rose-700 shadow-sm">
+              {searchError}
+            </div>
+          ) : null}
+
+          {/* Dropdown résultats */}
+          {searchResults.length > 1 ? (
+            <div className="pointer-events-auto max-h-56 overflow-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-card backdrop-blur">
+              <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Résultats
+              </p>
+              <div className="space-y-1">
+                {searchResults.map((candidate, index) => (
+                  <button
+                    key={`${candidate.latitude}-${candidate.longitude}-${index}`}
+                    type="button"
+                    onClick={() => recenterFromSearchResult(candidate)}
+                    className="w-full rounded-xl px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100"
+                  >
+                    <span className="block font-semibold">{candidate.label}</span>
+                    <span className="block text-xs text-slate-500">
+                      {[candidate.postcode, candidate.city].filter(Boolean).join(" ")}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
+      {viewMode === "list" ? (
+        <div className="absolute inset-x-4 bottom-4 z-10">
+          <div className="pointer-events-auto rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-card backdrop-blur">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Spots visibles ({sortedSpots.length})
+              </p>
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                Trier
+                <select
+                  value={listSort}
+                  onChange={(event) => setListSort(event.target.value as SpotListSort)}
+                  className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none"
+                >
+                  <option value="city-asc">Ville A-Z</option>
+                  <option value="city-desc">Ville Z-A</option>
+                </select>
+              </label>
+            </div>
+            <div className="max-h-64 space-y-2 overflow-auto">
+              {sortedSpots.length ? (
+                sortedSpots.map(({ spot, distanceFromCenterMeters }) => {
+                  const isSelected = selectedSpot?.id === spot.id;
+                  const sportName = sportIndex[spot.sportId]?.name ?? "Sport";
+                  const subtitle = [spot.address, spot.zipCode, spot.city].filter(Boolean).join(" - ");
+                  const spotTitle = spot.name?.trim() || spot.city || "Spot";
+                  return (
+                    <button
+                      key={spot.id}
+                      type="button"
+                      onClick={() => handleSelectSpotFromList(spot)}
+                      className={`w-full rounded-xl border px-3 py-2 text-left transition ${
+                        isSelected
+                          ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10"
+                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <p className="text-sm font-semibold text-slate-900">{spotTitle}</p>
+                      <p className="text-xs text-slate-500">{subtitle || "Adresse non renseignee"}</p>
+                      <div className="mt-1 flex flex-wrap gap-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                        <span>{sportName}</span>
+                        <span>•</span>
+                        <span>{Number.isFinite(distanceFromCenterMeters) ? formatDistanceKm(distanceFromCenterMeters) : "-"}</span>
+                        <span>•</span>
+                        <span>Lumiere: {formatBoolean(spot.haveLighting)}</span>
+                        <span>•</span>
+                        <span>Eau: {formatBoolean(spot.haveWaterCooler)}</span>
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <p className="rounded-xl border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
+                  Aucun spot visible dans la zone courante.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
       {!token ? (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10 text-sm font-semibold text-slate-600 backdrop-blur">
           Mapbox token missing
         </div>
       ) : null}
-      {selectedSpot ? (
+      {selectedSpot && viewMode === "map" ? (
         <div className="absolute bottom-4 left-4 right-4 z-10">
           <div className="rounded-[22px] border border-slate-200/70 bg-white/95 p-5 shadow-card backdrop-blur">
             <div className="flex items-start justify-between gap-4">
@@ -1332,7 +1629,7 @@ export default function MapboxMap({
                   </span>
                 </div>
                 <h3 className="font-display text-lg font-semibold text-slate-900">
-                  {selectedSpot.city || "Spot"}
+                  {selectedSpot.name?.trim() || selectedSpot.city || "Spot"}
                 </h3>
                 {spotAddress ? (
                   <p className="text-sm text-slate-600">{spotAddress}</p>
@@ -1407,7 +1704,7 @@ export default function MapboxMap({
                   Fiche spot
                 </p>
                 <h3 className="mt-2 font-display text-2xl font-semibold text-slate-900">
-                  {selectedSpot.city || selectedSport?.name || "Spot"}
+                  {selectedSpot.name?.trim() || selectedSpot.city || selectedSport?.name || "Spot"}
                 </h3>
                 {spotAddress ? (
                   <p className="mt-1 text-sm text-slate-600">{spotAddress}</p>
