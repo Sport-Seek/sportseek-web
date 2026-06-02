@@ -80,7 +80,7 @@ export default function CollectivitesPage() {
                   href="/"
                   className="inline-flex items-center justify-center rounded-full border border-slate-200/80 bg-white/80 px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
                 >
-                  Retour à l'accueil
+                  Retour à l&apos;accueil
                 </Link>
               </div>
             </div>
