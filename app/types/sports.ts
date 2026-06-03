@@ -29,6 +29,11 @@ export type Equipment = {
   id: string;
   name: string;
   slug: string;
+  iconUrl?: string | null;
+  iconKey?: string | null;
+  iconMimeType?: string | null;
+  iconChecksum?: string | null;
+  iconUpdatedAt?: string | null;
   logoSvg: string | null;
   createdAt: string;
   updatedAt: string | null;
@@ -57,6 +62,11 @@ export type Sport = {
   name: string;
   slug: string;
   color: string;
+  iconUrl?: string | null;
+  iconKey?: string | null;
+  iconMimeType?: string | null;
+  iconChecksum?: string | null;
+  iconUpdatedAt?: string | null;
   createdAt: string;
   updatedAt: string | null;
   logoSvg: string;

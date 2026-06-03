@@ -1,8 +1,10 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import Script from "next/script";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSports } from "@/app/contexts/SportsContext";
+import CatalogIcon, { getCatalogIconSrc } from "@/app/components/CatalogIcon";
 import { getPublicApiBaseUrl } from "@/app/lib/config/publicEnv";
 import {
   geocodingService,
@@ -266,9 +268,6 @@ const buildAssetUrl = (path?: string | null) => {
   return `${getPublicApiBaseUrl()}${ensured}`;
 };
 
-const svgToDataUrl = (svg: string) =>
-  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-
 const getSportIconId = (sportId?: string | null) => (sportId ? `sport-icon-${sportId}` : null);
 
 const buildMarkerTokenImageData = ({
@@ -347,7 +346,6 @@ export default function MapboxMap({
   const [listSort, setListSort] = useState<SpotListSort>("city-asc");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<GeocodingCandidate[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [viewportCenter, setViewportCenter] = useState({
     latitude: center[1],
@@ -586,7 +584,9 @@ export default function MapboxMap({
 
       ensureFallbackToken();
 
-      if (!sport?.logoSvg || pendingSportIconIdsRef.current.has(iconId)) {
+      const iconSrc = getCatalogIconSrc(sport?.iconUrl, sport?.logoSvg);
+
+      if (!sport || !iconSrc || pendingSportIconIdsRef.current.has(iconId)) {
         return;
       }
 
@@ -617,7 +617,7 @@ export default function MapboxMap({
       image.onerror = () => {
         commitToken(null);
       };
-      image.src = svgToDataUrl(sport.logoSvg);
+      image.src = iconSrc;
     },
     [sportIndex],
   );
@@ -1614,13 +1614,12 @@ export default function MapboxMap({
                       className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
                       style={{ borderColor: spotColor, color: spotColor }}
                     >
-                      {selectedSport.logoSvg ? (
-                        <span
-                          className="spot-card-logo h-4 w-4"
-                          aria-hidden="true"
-                          dangerouslySetInnerHTML={{ __html: selectedSport.logoSvg }}
-                        />
-                      ) : null}
+                      <CatalogIcon
+                        accessibilityLabel={selectedSport.name ?? "Sport"}
+                        iconUrl={selectedSport.iconUrl}
+                        logoSvg={selectedSport.logoSvg}
+                        className="spot-card-logo h-4 w-4"
+                      />
                       {selectedSport.name ?? "Sport"}
                     </span>
                   ) : null}
@@ -1731,13 +1730,12 @@ export default function MapboxMap({
                     className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
                     style={{ borderColor: spotColor, color: spotColor }}
                   >
-                    {selectedSport.logoSvg ? (
-                      <span
-                        className="spot-card-logo h-4 w-4"
-                        aria-hidden="true"
-                        dangerouslySetInnerHTML={{ __html: selectedSport.logoSvg }}
-                      />
-                    ) : null}
+                    <CatalogIcon
+                      accessibilityLabel={selectedSport.name ?? "Sport"}
+                      iconUrl={selectedSport.iconUrl}
+                      logoSvg={selectedSport.logoSvg}
+                      className="spot-card-logo h-4 w-4"
+                    />
                     {selectedSport.name ?? "Sport"}
                   </span>
                 ) : null}
