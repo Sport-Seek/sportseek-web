@@ -584,7 +584,7 @@ export default function MapboxMap({
 
       ensureFallbackToken();
 
-      const iconSrc = getCatalogIconSrc(sport?.iconUrl, sport?.logoSvg);
+      const iconSrc = getCatalogIconSrc(sport?.iconUrl);
 
       if (!sport || !iconSrc || pendingSportIconIdsRef.current.has(iconId)) {
         return;
@@ -1617,7 +1617,6 @@ export default function MapboxMap({
                       <CatalogIcon
                         accessibilityLabel={selectedSport.name ?? "Sport"}
                         iconUrl={selectedSport.iconUrl}
-                        logoSvg={selectedSport.logoSvg}
                         className="spot-card-logo h-4 w-4"
                       />
                       {selectedSport.name ?? "Sport"}
@@ -1730,12 +1729,11 @@ export default function MapboxMap({
                     className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
                     style={{ borderColor: spotColor, color: spotColor }}
                   >
-                    <CatalogIcon
-                      accessibilityLabel={selectedSport.name ?? "Sport"}
-                      iconUrl={selectedSport.iconUrl}
-                      logoSvg={selectedSport.logoSvg}
-                      className="spot-card-logo h-4 w-4"
-                    />
+                      <CatalogIcon
+                        accessibilityLabel={selectedSport.name ?? "Sport"}
+                        iconUrl={selectedSport.iconUrl}
+                        className="spot-card-logo h-4 w-4"
+                      />
                     {selectedSport.name ?? "Sport"}
                   </span>
                 ) : null}

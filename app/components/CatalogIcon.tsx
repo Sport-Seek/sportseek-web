@@ -9,19 +9,10 @@ const getInitials = (label: string) =>
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
 
-export const getCatalogIconSrc = (iconUrl?: string | null, logoSvg?: string | null) => {
+export const getCatalogIconSrc = (iconUrl?: string | null) => {
   const trimmedIconUrl = iconUrl?.trim();
   if (trimmedIconUrl) {
     return trimmedIconUrl;
-  }
-
-  const trimmedLogoSvg = logoSvg?.trim();
-  if (
-    trimmedLogoSvg &&
-    (trimmedLogoSvg.startsWith("<svg") ||
-      (trimmedLogoSvg.startsWith("<?xml") && trimmedLogoSvg.includes("<svg")))
-  ) {
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(trimmedLogoSvg)}`;
   }
 
   return null;
@@ -30,7 +21,6 @@ export const getCatalogIconSrc = (iconUrl?: string | null, logoSvg?: string | nu
 type Props = {
   accessibilityLabel: string;
   iconUrl?: string | null;
-  logoSvg?: string | null;
   className?: string;
   size?: number;
 };
@@ -38,11 +28,10 @@ type Props = {
 export default function CatalogIcon({
   accessibilityLabel,
   iconUrl,
-  logoSvg,
   className,
   size,
 }: Props) {
-  const src = getCatalogIconSrc(iconUrl, logoSvg);
+  const src = getCatalogIconSrc(iconUrl);
   const initials = getInitials(accessibilityLabel || "Sport");
   const style = size ? { width: size, height: size } : undefined;
   const baseClassName = `inline-flex items-center justify-center ${className ?? ""}`.trim();

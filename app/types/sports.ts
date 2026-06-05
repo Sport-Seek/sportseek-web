@@ -34,7 +34,6 @@ export type Equipment = {
   iconMimeType?: string | null;
   iconChecksum?: string | null;
   iconUpdatedAt?: string | null;
-  logoSvg: string | null;
   createdAt: string;
   updatedAt: string | null;
   properties: Property[];
@@ -69,6 +68,5 @@ export type Sport = {
   iconUpdatedAt?: string | null;
   createdAt: string;
   updatedAt: string | null;
-  logoSvg: string;
   equipments: Equipment[];
 };

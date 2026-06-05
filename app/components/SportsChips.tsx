@@ -9,7 +9,6 @@ const SportLogo = ({ sport }: { sport: Sport }) => {
     <CatalogIcon
       accessibilityLabel={sport.name}
       iconUrl={sport.iconUrl}
-      logoSvg={sport.logoSvg}
       className="flex h-full w-full items-center justify-center"
     />
   );
