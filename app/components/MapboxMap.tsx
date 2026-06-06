@@ -347,6 +347,7 @@ export default function MapboxMap({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<GeocodingCandidate[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [viewportCenter, setViewportCenter] = useState({
     latitude: center[1],
     longitude: center[0],
@@ -610,6 +611,7 @@ export default function MapboxMap({
       };
 
       const image = new Image();
+      image.crossOrigin = "anonymous";
       image.decoding = "async";
       image.onload = () => {
         commitToken(image);
