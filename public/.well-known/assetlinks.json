@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.sportseekapplication",
+      "sha256_cert_fingerprints": [
+        "30:B4:4C:2D:6E:89:AB:E3:06:4E:8E:79:53:5B:A5:04:FA:51:2C:47:CD:A8:7D:0F:79:81:86:C7:86:B6:67:2A"
+      ]
+    }
+  }
+]
