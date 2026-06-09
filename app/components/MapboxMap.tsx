@@ -1187,6 +1187,19 @@ export default function MapboxMap({
     setActivePhoto(0);
   }, [selectedSpot]);
 
+  useEffect(() => {
+    if (!spotModalOpen) return;
+
+    const { body } = document;
+    const previousBodyOverflow = body.style.overflow;
+
+    body.style.overflow = "hidden";
+
+    return () => {
+      body.style.overflow = previousBodyOverflow;
+    };
+  }, [spotModalOpen]);
+
   const selectedSport = selectedSpot ? sportIndex[selectedSpot.sportId] : undefined;
   const spotAddress = selectedSpot
     ? [selectedSpot.address, selectedSpot.zipCode, selectedSpot.city].filter(Boolean).join(" - ")
@@ -1724,7 +1737,7 @@ export default function MapboxMap({
                 </svg>
               </button>
             </div>
-            <div className="max-h-[78vh] overflow-y-auto">
+            <div className="max-h-[78vh] overflow-y-auto overscroll-contain">
               <div className="px-6 pt-6">
                 {selectedSport ? (
                   <span
