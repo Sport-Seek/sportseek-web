@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { spotsService } from "@/app/services/spots.service";
-import { catalogService } from "@/app/services/catalog.service";
 import { buildPhotoUrl } from "@/app/lib/photoUrl";
+import { catalogService } from "@/app/services/catalog.service";
+import { spotsService } from "@/app/services/spots.service";
+import type { Equipment, Property, Sport } from "@/app/types/sports";
+import type { Spot } from "@/app/types/spots";
 import SpotDetailsClient from "./SpotDetailsClient";
 
 interface Props {
@@ -11,14 +13,19 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
+
   try {
     const spot = await spotsService.fetchSpotById(id);
     if (!spot) {
       return {};
     }
 
-    const title = spot.name ? `Spot : ${spot.name}` : `Spot de ${spot.sportName || "sport"} à ${spot.city}`;
-    const description = spot.comment || `Découvrez ce spot de ${spot.sportName || "sport"} situé à ${spot.city}. Ouvrez l'application SportSeek pour voir tous les détails.`;
+    const title = spot.name
+      ? `Spot : ${spot.name}`
+      : `Spot de ${spot.sportName || "sport"} à ${spot.city}`;
+    const description =
+      spot.comment ||
+      `Découvrez ce spot de ${spot.sportName || "sport"} situé à ${spot.city}. Ouvrez l'application SportSeek pour voir tous les détails.`;
     const photoUrl =
       buildPhotoUrl(spot.photos?.[0]?.url) ??
       buildPhotoUrl(spot.photos?.[0]?.uri) ??
@@ -39,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: [photoUrl],
       },
     };
-  } catch (error) {
+  } catch {
     return {
       title: "Spot introuvable",
     };
@@ -48,36 +55,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SpotPage({ params }: Props) {
   const { id } = await params;
-  
+
+  let spot: Spot | null = null;
+  let sports: Sport[] = [];
+  let equipments: Equipment[] = [];
+  let properties: Property[] = [];
+
   try {
-    // Parallel fetching for performance
-    const [spot, sports, equipments, properties] = await Promise.all([
+    [spot, sports, equipments, properties] = await Promise.all([
       spotsService.fetchSpotById(id),
       catalogService.fetchSports(),
       catalogService.fetchEquipments(),
-      catalogService.fetchProperties()
+      catalogService.fetchProperties(),
     ]);
-
-    if (!spot) {
-      notFound();
-    }
-
-    // Convert arrays to lookup dictionaries for O(1) access in the UI
-    const equipmentsDict = Object.fromEntries(equipments.map(e => [e.id, e]));
-    const propertiesDict = Object.fromEntries(properties.map(p => [p.id, p]));
-
-    return (
-      <SpotDetailsClient 
-        spot={spot} 
-        catalog={{
-          sports,
-          equipments: equipmentsDict,
-          properties: propertiesDict
-        }} 
-      />
-    );
-  } catch (error) {
-    // API error or not found
+  } catch {
     notFound();
   }
+
+  if (!spot) {
+    notFound();
+  }
+
+  const equipmentsDict = Object.fromEntries(equipments.map((equipment) => [equipment.id, equipment]));
+  const propertiesDict = Object.fromEntries(properties.map((property) => [property.id, property]));
+
+  return (
+    <SpotDetailsClient
+      spot={spot}
+      catalog={{
+        sports,
+        equipments: equipmentsDict,
+        properties: propertiesDict,
+      }}
+    />
+  );
 }

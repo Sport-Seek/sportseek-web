@@ -339,7 +339,7 @@ export default function MapboxMap({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<GeocodingCandidate[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [, setSearchLoading] = useState(false);
   const selectedSearchResultQueryRef = useRef<string | null>(null);
   const [viewportCenter, setViewportCenter] = useState({
     latitude: center[1],

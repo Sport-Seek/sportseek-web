@@ -1,15 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import type { Spot } from "@/app/types/spots";
+import { useAuth } from "@/app/contexts/AuthContext";
+import { toDisplayDate } from "@/app/lib/spotLogic";
+import { favoritesService } from "@/app/services";
 import type { Sport, Equipment, Property } from "@/app/types/sports";
+import type { Spot } from "@/app/types/spots";
+import SpotComment from "./components/SpotComment";
+import SpotEquipments from "./components/SpotEquipments";
 import SpotHero from "./components/SpotHero";
 import SpotPracticalInfo from "./components/SpotPracticalInfo";
-import SpotEquipments from "./components/SpotEquipments";
-import SpotComment from "./components/SpotComment";
-import { useAuth } from "@/app/contexts/AuthContext";
-import { favoritesService } from "@/app/services";
-import { toDisplayDate } from "@/app/lib/spotLogic";
 
 interface SpotDetailsClientProps {
   spot: Spot;
@@ -22,13 +23,13 @@ interface SpotDetailsClientProps {
 
 export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientProps) {
   const sport = catalog.sports.find((s) => s.id === spot.sportId);
-  const createdAt = toDisplayDate(spot.createdAt);
   const updatedAt = toDisplayDate(spot.updatedAt || spot.createdAt);
   const { isAuthenticated, accessToken, loading: authLoading } = useAuth();
 
   const [isMounted, setIsMounted] = useState(false);
   const [favoritePending, setFavoritePending] = useState(false);
   const [favoriteSaved, setFavoriteSaved] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -43,13 +44,14 @@ export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientPr
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
-      } catch (err) {
-        console.error("Share failed", err);
+      } catch (error) {
+        console.error("Share failed", error);
       }
-    } else {
-      navigator.clipboard.writeText(url);
-      alert("Lien copié dans le presse-papier !");
+      return;
     }
+
+    await navigator.clipboard.writeText(url);
+    alert("Lien copié dans le presse-papier !");
   };
 
   const openDirections = () => {
@@ -62,9 +64,10 @@ export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientPr
         `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}`,
         "_blank",
       );
-    } else {
-      alert("Localisation du spot indisponible.");
+      return;
     }
+
+    alert("Localisation du spot indisponible.");
   };
 
   const handleAddFavoriteSpot = async () => {
@@ -86,20 +89,26 @@ export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientPr
 
   return (
     <div
-      className={`flex min-h-screen w-full flex-col bg-[var(--color-surface)] pb-24 ${
+      className={`mx-auto flex min-h-screen w-full flex-col bg-[var(--color-surface)] pb-24 ${
         isMounted ? "reveal" : "opacity-0"
-      } mx-auto max-w-2xl sm:my-8 sm:overflow-hidden sm:rounded-[28px] sm:shadow-card`}
+      } max-w-2xl sm:my-8 sm:overflow-hidden sm:rounded-[28px] sm:shadow-card`}
     >
-      <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-between pointer-events-none">
-        <a
+      <div className="pointer-events-none absolute left-4 right-4 top-4 z-10 flex items-center justify-between">
+        <Link
           href="/"
           className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-border)] bg-white/90 text-[var(--color-ink)] shadow-soft backdrop-blur-md transition-transform hover:scale-105"
           aria-label="Retour"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
           </svg>
-        </a>
+        </Link>
+
         <button
           onClick={handleShare}
           className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-border)] bg-white/90 text-[var(--color-ink)] shadow-soft backdrop-blur-md transition-transform hover:scale-105"
@@ -119,7 +128,7 @@ export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientPr
       <SpotHero spot={spot} sport={sport} />
 
       <div className="relative z-20 -mt-6 flex-1 rounded-t-[24px] bg-[var(--color-surface)] p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] sm:p-6">
-        <div className="mb-3 flex items-start justify-between gap-4 reveal-delay-1">
+        <div className="reveal-delay-1 mb-3 flex items-start justify-between gap-4">
           <h1 className="font-display text-2xl font-bold leading-tight text-[var(--color-ink)]">
             {spotName}
           </h1>
@@ -131,7 +140,7 @@ export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientPr
         </div>
 
         <div
-          className={`mb-8 grid gap-3 reveal-delay-1 ${
+          className={`reveal-delay-1 mb-8 grid gap-3 ${
             showFavoriteButton ? "grid-cols-[1fr_auto]" : "grid-cols-1"
           }`}
         >
@@ -139,7 +148,7 @@ export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientPr
             onClick={openDirections}
             className="flex items-center justify-center gap-2 rounded-[14px] border-none bg-accent px-4 py-3.5 text-[15px] font-extrabold text-white transition-all hover:-translate-y-0.5 active:translate-y-0"
           >
-            S'y rendre
+            S&apos;y rendre
           </button>
 
           {showFavoriteButton ? (
@@ -179,7 +188,7 @@ export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientPr
           href={deepLinkUrl}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-ink)] py-3.5 font-bold text-white shadow-lg"
         >
-          Ouvrir dans l'App
+          Ouvrir dans l&apos;App
         </a>
       </div>
 
@@ -190,13 +199,13 @@ export default function SpotDetailsClient({ spot, catalog }: SpotDetailsClientPr
           </div>
           <h3 className="mb-2 font-display text-lg font-bold">SportSeek</h3>
           <p className="mb-6 text-sm font-medium leading-relaxed text-[var(--color-muted)]">
-            Ouvrez ce spot directement dans l'application pour l'enregistrer dans vos favoris.
+            Ouvrez ce spot directement dans l&apos;application pour l&apos;enregistrer dans vos favoris.
           </p>
           <a
             href={deepLinkUrl}
             className="mb-3 block w-full rounded-full bg-[var(--color-ink)] py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-black"
           >
-            Ouvrir l'App
+            Ouvrir l&apos;App
           </a>
           <a
             href="/download"
