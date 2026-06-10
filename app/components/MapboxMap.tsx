@@ -5,7 +5,7 @@ import Script from "next/script";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSports } from "@/app/contexts/SportsContext";
 import CatalogIcon, { getCatalogIconSrc } from "@/app/components/CatalogIcon";
-import { getPublicApiBaseUrl } from "@/app/lib/config/publicEnv";
+import { buildPhotoUrl } from "@/app/lib/photoUrl";
 import {
   geocodingService,
   spotsService,
@@ -260,14 +260,6 @@ const getEquipmentCount = (spot: Spot) => {
   return 0;
 };
 
-const buildAssetUrl = (path?: string | null) => {
-  if (!path) return null;
-  if (/^https?:\/\//i.test(path)) return path;
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  const ensured = normalized.startsWith("/spot/") ? normalized : `/spot${normalized}`;
-  return `${getPublicApiBaseUrl()}${ensured}`;
-};
-
 const getSportIconId = (sportId?: string | null) => (sportId ? `sport-icon-${sportId}` : null);
 
 const buildMarkerTokenImageData = ({
@@ -325,7 +317,7 @@ const normalizeEquipments = (spot: Spot) => {
 const getSpotPhotos = (spot: Spot | null) => {
   if (!spot?.photos?.length) return [];
   return spot.photos
-    .map((photo) => buildAssetUrl(photo.url) ?? photo.uri ?? null)
+    .map((photo) => buildPhotoUrl(photo.url) ?? buildPhotoUrl(photo.uri))
     .filter((url): url is string => Boolean(url));
 };
 
@@ -348,6 +340,7 @@ export default function MapboxMap({
   const [searchResults, setSearchResults] = useState<GeocodingCandidate[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+  const selectedSearchResultQueryRef = useRef<string | null>(null);
   const [viewportCenter, setViewportCenter] = useState({
     latitude: center[1],
     longitude: center[0],
@@ -1352,6 +1345,7 @@ export default function MapboxMap({
   const recenterFromSearchResult = useCallback((candidate: GeocodingCandidate) => {
     const map = mapRef.current;
     if (!map) return;
+    selectedSearchResultQueryRef.current = candidate.label;
     map.easeTo({
       center: [candidate.longitude, candidate.latitude],
       zoom: 13.5,
@@ -1366,8 +1360,19 @@ export default function MapboxMap({
     event.preventDefault();
   };
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    selectedSearchResultQueryRef.current = null;
+    setSearchQuery(event.target.value);
+  };
+
   useEffect(() => {
     const normalized = searchQuery.trim();
+
+    if (selectedSearchResultQueryRef.current === normalized) {
+      setSearchError(null);
+      setSearchResults([]);
+      return;
+    }
 
     if (!normalized) {
       setSearchError(null);
@@ -1467,7 +1472,7 @@ export default function MapboxMap({
 
               <input
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={handleSearchChange}
                 type="text"
                 inputMode="search"
                 placeholder="Ville, code postal, adresse…"
@@ -1479,7 +1484,11 @@ export default function MapboxMap({
               {searchQuery ? (
                 <button
                   type="button"
-                  onClick={() => { setSearchQuery(""); setSearchResults([]); }}
+                  onClick={() => {
+                    selectedSearchResultQueryRef.current = null;
+                    setSearchQuery("");
+                    setSearchResults([]);
+                  }}
                   className="shrink-0 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                   aria-label="Effacer la recherche"
                 >
@@ -1529,7 +1538,7 @@ export default function MapboxMap({
           ) : null}
 
           {/* Dropdown résultats */}
-          {searchResults.length > 1 ? (
+          {searchResults.length > 0 ? (
             <div className="pointer-events-auto max-h-56 overflow-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-card backdrop-blur">
               <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Résultats
@@ -1703,7 +1712,7 @@ export default function MapboxMap({
         </div>
       ) : null}
       {spotModalOpen && selectedSpot ? (
-        <div className="fixed inset-0 z-20 flex items-end justify-center px-4 pb-6 pt-16 sm:items-center sm:px-8">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-6 pt-16 sm:items-center sm:px-8">
           <button
             type="button"
             className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"

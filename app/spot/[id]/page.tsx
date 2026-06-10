@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { spotsService } from "@/app/services/spots.service";
 import { catalogService } from "@/app/services/catalog.service";
+import { buildPhotoUrl } from "@/app/lib/photoUrl";
 import SpotDetailsClient from "./SpotDetailsClient";
 
 interface Props {
@@ -18,7 +19,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = spot.name ? `Spot : ${spot.name}` : `Spot de ${spot.sportName || "sport"} à ${spot.city}`;
     const description = spot.comment || `Découvrez ce spot de ${spot.sportName || "sport"} situé à ${spot.city}. Ouvrez l'application SportSeek pour voir tous les détails.`;
-    const photoUrl = spot.photos?.[0]?.url || spot.photos?.[0]?.uri || "https://sportseek.fr/og-image-default.jpg";
+    const photoUrl =
+      buildPhotoUrl(spot.photos?.[0]?.url) ??
+      buildPhotoUrl(spot.photos?.[0]?.uri) ??
+      "https://sportseek.fr/og-image-default.jpg";
 
     return {
       title,
