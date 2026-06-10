@@ -29,7 +29,11 @@ export type Equipment = {
   id: string;
   name: string;
   slug: string;
-  logoSvg: string | null;
+  iconUrl?: string | null;
+  iconKey?: string | null;
+  iconMimeType?: string | null;
+  iconChecksum?: string | null;
+  iconUpdatedAt?: string | null;
   createdAt: string;
   updatedAt: string | null;
   properties: Property[];
@@ -57,8 +61,12 @@ export type Sport = {
   name: string;
   slug: string;
   color: string;
+  iconUrl?: string | null;
+  iconKey?: string | null;
+  iconMimeType?: string | null;
+  iconChecksum?: string | null;
+  iconUpdatedAt?: string | null;
   createdAt: string;
   updatedAt: string | null;
-  logoSvg: string;
   equipments: Equipment[];
 };

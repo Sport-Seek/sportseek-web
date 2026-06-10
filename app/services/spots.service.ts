@@ -21,4 +21,9 @@ export const spotsService = {
     }
     return data?.spots ?? [];
   },
+
+  async fetchSpotById(id: string, options?: RequestInit): Promise<Spot> {
+    const data = await apiClient.get<{ spot: Spot } | Spot>(`/spots/${id}`, options);
+    return 'spot' in data && data.spot ? data.spot : (data as Spot);
+  },
 };

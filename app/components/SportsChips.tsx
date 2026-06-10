@@ -1,35 +1,16 @@
 "use client";
 
 import { useSports } from "@/app/contexts/SportsContext";
+import CatalogIcon from "@/app/components/CatalogIcon";
 import type { Sport } from "@/app/types/sports";
 
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-
 const SportLogo = ({ sport }: { sport: Sport }) => {
-  if (sport.logoSvg) {
-    return (
-      <span
-        className="flex h-5 w-5 items-center justify-center"
-        aria-hidden="true"
-        dangerouslySetInnerHTML={{ __html: sport.logoSvg }}
-      />
-    );
-  }
-
   return (
-    <span
-      className="text-[10px] font-semibold uppercase"
-      style={{ color: sport.color }}
-      aria-hidden="true"
-    >
-      {getInitials(sport.name)}
-    </span>
+    <CatalogIcon
+      accessibilityLabel={sport.name}
+      iconUrl={sport.iconUrl}
+      className="flex h-full w-full items-center justify-center"
+    />
   );
 };
 
